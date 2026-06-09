@@ -27,6 +27,7 @@ body { font-family: 'Inter', sans-serif; background: #0b1120; color: #e2e8f0; }
 .btn-danger:hover { box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
 .btn-sm { padding: 4px 8px; font-size: 0.7rem; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
 .table-wrapper { overflow-x: auto; max-height: 70vh; position: relative; overflow-y: auto; }
 table { border-collapse: collapse; width: 100%; table-layout: fixed; }
 th { background: #1e293b; position: sticky; top: 0; z-index: 20; user-select: none; white-space: nowrap; padding: 12px 8px; border-bottom: 2px solid #334155; }
@@ -34,9 +35,11 @@ th .resize-handle { position: absolute; right: 0; top: 0; bottom: 0; width: 6px;
 th .resize-handle:hover { background: rgba(59, 130, 246, 0.5); }
 td { border-bottom: 1px solid #334155; padding: 10px 8px; vertical-align: middle; }
 tr:hover td { background: rgba(51, 65, 85, 0.4); }
+
 .status-badge { padding: 3px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 .badge-unprocessed { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
 .badge-processed { background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.3); }
+
 .review-text { max-height: 120px; overflow-y: auto; line-height: 1.5; font-size: 0.85rem; }
 .product-info-cell { font-size: 0.8rem; line-height: 1.4; }
 .product-name { font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
@@ -48,20 +51,25 @@ tr:hover td { background: rgba(51, 65, 85, 0.4); }
 .response-input { min-height: 100px; width: 100%; resize: vertical; background: #0f172a; border: 1px solid #475569; color: #e2e8f0; padding: 8px; border-radius: 6px; font-size: 0.85rem; }
 .response-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
 .response-input.gemini-filled { border-color: #10b981; background: #022c22; }
+
 .progress-bar { height: 4px; background: #334155; border-radius: 4px; overflow: hidden; margin-top: 8px; }
 .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #a855f7); transition: width 0.3s ease; width: 0%; }
+
 .spinner { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .fade-in { animation: fadeIn 0.3s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
 .toast { position: fixed; bottom: 24px; right: 24px; z-index: 50; padding: 12px 16px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards; max-width: 400px; word-break: break-word; }
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes fadeOut { to { opacity: 0; transform: translateY(10px); } }
+
 .checkbox-custom { width: 18px; height: 18px; accent-color: #3b82f6; cursor: pointer; }
 .tab-btn { padding: 8px 16px; border-radius: 6px; font-weight: 500; transition: all 0.2s; cursor: pointer; user-select: none; }
 .tab-btn.active { background: #3b82f6; color: white; }
 .tab-btn:not(.active) { background: transparent; color: #94a3b8; }
 .tab-btn:not(.active):hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+
 select.format-select { background: #0f172a; border: 1px solid #334155; color: #e2e8f0; border-radius: 4px 0 0 4px; padding: 0 8px; font-size: 0.8rem; }
 select.format-select:focus { outline: none; border-color: #3b82f6; }
 .group-btn { display: inline-flex; border-radius: 6px; overflow: visible; }
@@ -90,6 +98,8 @@ select.format-select:focus { outline: none; border-color: #3b82f6; }
 .action-btn.save:hover { background: rgba(16, 185, 129, 0.2); }
 .loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 17, 32, 0.8); display: flex; align-items: center; justify-content: center; z-index: 5; backdrop-filter: blur(2px); }
 .error-banner { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; padding: 12px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+
+/* Multi-select dropdown */
 .multi-select-wrapper { position: relative; }
 .multi-select-trigger { display: flex; align-items: center; gap: 4px; padding: 4px 10px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: #e2e8f0; transition: border-color 0.15s; }
 .multi-select-trigger:hover { border-color: #fbbf24; }
@@ -102,6 +112,19 @@ select.format-select:focus { outline: none; border-color: #3b82f6; }
 .multi-select-option .check-icon { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #475569; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; transition: all 0.15s; }
 .multi-select-option.selected .check-icon { background: #fbbf24; border-color: #fbbf24; color: #0b1120; }
 .multi-select-divider { height: 1px; background: #334155; margin: 4px 0; }
+
+/* Media cell styling */
+.media-cell { display: flex; align-items: center; justify-content: center; height: 100%; min-height: 50px; }
+.media-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: all 0.15s; font-size: 0.85rem; font-weight: 600; border: 1px solid #334155; background: rgba(30, 41, 59, 0.8); color: #cbd5e1; }
+.media-btn:hover { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: #93c5fd; }
+.media-btn.has-media { border-color: #f59e0b; color: #fbbf24; }
+.media-btn.has-media:hover { background: rgba(245, 158, 11, 0.2); }
+.media-no { color: #475569; font-size: 0.8rem; }
+.media-icon { font-size: 1.2rem; }
+.media-viewer-img { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
+.media-viewer-img:hover { transform: scale(1.02); }
+.media-viewer-video { width: 100%; border-radius: 8px; max-height: 400px; background: #000; }
+
 /* Switch Toggle Style */
 .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
 .switch input { opacity: 0; width: 0; height: 0; }
@@ -190,8 +213,8 @@ input:checked + .slider:before { transform: translateX(20px); }
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Статус:</label>
 <select id="filterStatus" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none">
-<option value="ALL">Все</option>
-<option value="UNPROCESSED" selected>Необработанные</option>
+<option value="ALL" selected>Все</option>
+<option value="UNPROCESSED">Необработанные</option>
 <option value="PROCESSED">Обработанные</option>
 </select>
 </div>
@@ -496,6 +519,9 @@ ratingDropdownOpen: false,
 slowMode: true
 };
 
+// Helper for delay (Slow Mode)
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 // Init
 document.addEventListener('DOMContentLoaded', () => {
 loadSettings();
@@ -516,7 +542,7 @@ closeRatingDropdown();
 window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); }, true);
 window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); });
 
-addLog('info', 'Приложение запущено', { version: '7.8' });
+addLog('info', 'Приложение запущено', { version: '8.0' });
 });
 
 function loadSettings() {
@@ -982,14 +1008,21 @@ document.getElementById('errorText').textContent = msg;
 banner.classList.remove('hidden');
 }
 
+// Safe version of applyFilters that won't throw
 function applyFiltersSafe() {
 try {
 const skuSearch = document.getElementById('searchSku')?.value?.trim().toLowerCase() || '';
 const hasTextSort = document.getElementById('sortHasText')?.value || 'all';
 const dateSort = document.getElementById('sortDate')?.value || 'desc';
 const mediaFilter = document.getElementById('filterMedia')?.value || 'all';
+const statusFilter = document.getElementById('filterStatus')?.value || 'ALL';
 
 let filtered = [...state.reviews];
+
+// Apply Status Filter
+if (statusFilter !== 'ALL') {
+filtered = filtered.filter(r => r.status === statusFilter);
+}
 
 if (skuSearch) filtered = filtered.filter(r => String(r.sku).toLowerCase().includes(skuSearch));
 
@@ -1021,6 +1054,7 @@ renderReviewsTable();
 updateStats();
 } catch (e) {
 addLog('error', 'Ошибка фильтрации', e.message);
+// Show all reviews if filtering fails
 state.filteredReviews = [...state.reviews];
 renderReviewsTable();
 updateStats();
@@ -1397,6 +1431,11 @@ const count = parseInt(localStorage.getItem(key) || '0');
 return count < 500;
 }
 
+function getDailyUsage() {
+const key = getDailyUsageKey();
+return parseInt(localStorage.getItem(key) || '0');
+}
+
 function incrementDailyCounter() {
 const key = getDailyUsageKey();
 const current = parseInt(localStorage.getItem(key) || '0');
@@ -1407,7 +1446,8 @@ updateDailyCounterDisplay();
 function updateDailyCounterDisplay() {
 const key = getDailyUsageKey();
 const count = parseInt(localStorage.getItem(key) || '0');
-document.getElementById('dailyCounterDisplay').textContent = count;
+const display = document.getElementById('dailyCounterDisplay');
+if (display) display.textContent = count;
 }
 
 async function startGeminiGeneration() {
@@ -1418,12 +1458,32 @@ document.getElementById('btnStartGemini').disabled = true;
 document.getElementById('btnStartGemini').innerHTML = '<i class="ph ph-spinner spinner mr-2"></i> Генерация...';
 document.getElementById('geminiProgress').classList.remove('hidden');
 
+// Check daily limit and slice array if needed
+let reviewsToProcess = [...selectedReviews];
+if (state.slowMode) {
+const dailyLimit = 500;
+const currentUsage = getDailyUsage();
+const remaining = dailyLimit - currentUsage;
+
+if (remaining <= 0) {
+showToast('Дневной лимит исчерпан (500/500). Попробуйте завтра.', 'error');
+closeGeminiModal();
+return;
+}
+
+if (reviewsToProcess.length > remaining) {
+showToast(`Внимание: Дневной лимит позволяет обработать только ${remaining} из ${reviewsToProcess.length} выбранных.`, 'info');
+addLog('info', `Лимит: обработаем ${remaining} из ${reviewsToProcess.length}`);
+reviewsToProcess = reviewsToProcess.slice(0, remaining);
+}
+}
+
 let completed = 0, errors = 0;
 
-for (let i = 0; i < selectedReviews.length; i++) {
-const review = selectedReviews[i];
+for (let i = 0; i < reviewsToProcess.length; i++) {
+const review = reviewsToProcess[i];
 try {
-updateGeminiProgress(completed + errors, selectedReviews.length, `Обработка ${review.id.substring(0, 8)}...`);
+updateGeminiProgress(completed + errors, reviewsToProcess.length, `Обработка ${review.id.substring(0, 8)}...`);
 
 const response = await generateSingleReviewWithAI(review, promptTemplate);
 review.response = response;
@@ -1444,15 +1504,15 @@ renderReviewsTable();
 
 // Rate Limiting Delay: ~5-6 seconds between requests (15 per minute)
 // This also helps stay under the 250k tokens/min limit by spacing them out
-if (state.slowMode && i < selectedReviews.length - 1) {
-updateGeminiProgress(completed + errors, selectedReviews.length, `Ожидание лимита (5с)...`);
-await new Promise(resolve => setTimeout(resolve, 5500));
+if (state.slowMode && i < reviewsToProcess.length - 1) {
+updateGeminiProgress(completed + errors, reviewsToProcess.length, `Ожидание лимита (5с)...`);
+await sleep(5500);
 }
 
 } catch (e) { errors++; addLog('error', 'Ошибка генерации', e.message); }
 }
 
-updateGeminiProgress(completed, selectedReviews.length, 'Готово!');
+updateGeminiProgress(completed, reviewsToProcess.length, 'Готово!');
 document.getElementById('btnStartGemini').innerHTML = '<i class="ph ph-check mr-2"></i> Завершено';
 setTimeout(() => {
 closeGeminiModal();
