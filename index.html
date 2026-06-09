@@ -102,18 +102,13 @@ select.format-select:focus { outline: none; border-color: #3b82f6; }
 .multi-select-option .check-icon { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #475569; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; transition: all 0.15s; }
 .multi-select-option.selected .check-icon { background: #fbbf24; border-color: #fbbf24; color: #0b1120; }
 .multi-select-divider { height: 1px; background: #334155; margin: 4px 0; }
-/* Media cell styling - centered and bigger */
-.media-cell { display: flex; align-items: center; justify-content: center; height: 100%; min-height: 50px; }
-.media-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: all 0.15s; font-size: 0.85rem; font-weight: 600; border: 1px solid #334155; background: rgba(30, 41, 59, 0.8); color: #cbd5e1; }
-.media-btn:hover { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: #93c5fd; }
-.media-btn.has-media { border-color: #f59e0b; color: #fbbf24; }
-.media-btn.has-media:hover { background: rgba(245, 158, 11, 0.2); }
-.media-no { color: #475569; font-size: 0.8rem; }
-.media-icon { font-size: 1.2rem; }
-/* Media viewer modal */
-.media-viewer-img { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
-.media-viewer-img:hover { transform: scale(1.02); }
-.media-viewer-video { width: 100%; border-radius: 8px; max-height: 400px; background: #000; }
+/* Switch Toggle Style */
+.switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 20px; }
+.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #3b82f6; }
+input:checked + .slider:before { transform: translateX(20px); }
 </style>
 </head>
 <body class="min-h-screen">
@@ -352,6 +347,19 @@ select.format-select:focus { outline: none; border-color: #3b82f6; }
 </button>
 </div>
 </div>
+<div class="flex items-center gap-3 mt-2 p-2 bg-slate-800/50 rounded border border-slate-700">
+<label class="switch">
+<input type="checkbox" id="slowModeToggle" checked onchange="updateSlowModeStatus()">
+<span class="slider"></span>
+</label>
+<div>
+<div class="text-sm font-medium text-blue-300">Slow Mode (Лимиты API)</div>
+<div class="text-[10px] text-slate-400">15 запросов/мин, 500/день. Авто-отправка на Ozon после генерации.</div>
+</div>
+</div>
+<div class="text-[10px] text-slate-500 mt-1">
+Использовано запросов сегодня: <span id="dailyCounterDisplay" class="text-yellow-400">0</span> / 500
+</div>
 <div>
 <label class="text-xs text-slate-400 block mb-1">Лимит токенов</label>
 <div class="flex items-center gap-4">
@@ -447,6 +455,28 @@ select.format-select:focus { outline: none; border-color: #3b82f6; }
 </div>
 </div>
 
+<!-- AI Generation Modal -->
+<div id="geminiModal" class="hidden modal-overlay">
+<div class="modal-content">
+<h3 class="text-lg font-semibold mb-4 flex items-center"><i class="ph ph-sparkle mr-2 text-purple-400"></i>Генерация ответов с AI</h3>
+<p class="text-sm text-slate-400 mb-4">Выбрано отзывов: <span id="geminiCount" class="text-white font-medium">0</span></p>
+<div id="geminiProgress" class="hidden mb-4">
+<div class="flex justify-between text-xs mb-1">
+<span id="geminiProgressText">Генерация...</span>
+<span id="geminiProgressPercent">0%</span>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="geminiProgressBar"></div></div>
+<p class="text-xs text-slate-500 mt-1" id="geminiProgressDetail">Обработка...</p>
+</div>
+<div class="flex gap-2 justify-end">
+<button onclick="closeGeminiModal()" class="btn px-4 py-2 glass rounded-lg text-sm">Отмена</button>
+<button onclick="startGeminiGeneration()" id="btnStartGemini" class="btn btn-gemini px-4 py-2 rounded-lg text-white text-sm font-medium flex items-center">
+<i class="ph ph-play mr-2"></i> Начать генерацию
+</button>
+</div>
+</div>
+</div>
+
 <script>
 // State
 let state = {
@@ -462,7 +492,8 @@ selectedRatings: new Set(['any']),
 templates: [],
 currentTemplateEditId: null,
 currentTemplateReviewId: null,
-ratingDropdownOpen: false
+ratingDropdownOpen: false,
+slowMode: true
 };
 
 // Init
@@ -474,6 +505,7 @@ updateStats();
 renderLog();
 renderTemplatesList();
 updateRatingTrigger();
+updateDailyCounterDisplay();
 
 document.addEventListener('click', (e) => {
 if (!e.target.closest('.multi-select-wrapper')) {
@@ -484,7 +516,7 @@ closeRatingDropdown();
 window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); }, true);
 window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); });
 
-addLog('info', 'Приложение запущено', { version: '7.7' });
+addLog('info', 'Приложение запущено', { version: '7.8' });
 });
 
 function loadSettings() {
@@ -496,6 +528,11 @@ document.getElementById('ozonCorsProxy').value = localStorage.getItem('ozon_cors
 document.getElementById('geminiMaxTokens').value = localStorage.getItem('gemini_max_tokens') || '200';
 document.getElementById('geminiPromptTemplate').value = localStorage.getItem('gemini_prompt') || 'Ты — помощник продавца на Ozon. Напиши вежливый, профессиональный ответ на отзыв покупателя, всегда старайся разобраться в ситуации. Всегда упоминай товар конкретный товар в тексте отзыва, чтобы улучшать SEO карточки. Учитывай рейтинг: если 4-5 звезд — поблагодари, если 3 — нейтрально-вежливый, если 1-2 — извинись и предложи решение. Ответ должен быть на русском языке, длиной не более 2 предложения. Никогда не используй символ —.';
 document.getElementById('maxPages').value = localStorage.getItem('max_pages') || '3';
+
+const savedSlowMode = localStorage.getItem('slow_mode');
+state.slowMode = savedSlowMode !== 'false'; // Default to true if not set
+document.getElementById('slowModeToggle').checked = state.slowMode;
+updateSlowModeStatus();
 }
 
 function saveSettings() {
@@ -507,9 +544,21 @@ localStorage.setItem('ozon_corsProxy', document.getElementById('ozonCorsProxy').
 localStorage.setItem('gemini_max_tokens', document.getElementById('geminiMaxTokens').value.trim());
 localStorage.setItem('gemini_prompt', document.getElementById('geminiPromptTemplate').value.trim());
 localStorage.setItem('max_pages', document.getElementById('maxPages').value.trim());
+localStorage.setItem('slow_mode', state.slowMode.toString());
+
 showToast('Настройки сохранены', 'success');
 addLog('info', 'Настройки сохранены', { keys: Object.keys(localStorage).length });
 updateStats();
+}
+
+function updateSlowModeStatus() {
+state.slowMode = document.getElementById('slowModeToggle').checked;
+const btn = document.getElementById('btnAI');
+if (state.slowMode) {
+btn.innerHTML = '<i class="ph ph-sparkle mr-2"></i> AI (Slow Mode)';
+} else {
+btn.innerHTML = '<i class="ph ph-sparkle mr-2"></i> AI (Fast)';
+}
 }
 
 function switchTab(tab) {
@@ -908,19 +957,16 @@ await new Promise(resolve => setTimeout(resolve, 500));
 if (!data.has_next) break;
 }
 
-// Force re-render with safe filtering
 applyFiltersSafe();
 showToast(`Загружено ${state.reviews.length} отзывов`, 'success');
 addLog('info', 'Загрузка отзывов завершена', { total: state.reviews.length });
 
-// Load product descriptions in background
 fetchProductDescriptionsForReviews().catch(e => addLog('error', 'Ошибка загрузки описаний', e.message));
 
 } catch (e) {
 addLog('error', 'Ошибка загрузки отзывов', e.message);
 showBannerError(`Ошибка загрузки: ${e.message}`);
 showToast(`Ошибка: ${e.message}`, 'error');
-// Still show what we have
 applyFiltersSafe();
 } finally {
 hideProgress();
@@ -936,7 +982,6 @@ document.getElementById('errorText').textContent = msg;
 banner.classList.remove('hidden');
 }
 
-// Safe version of applyFilters that won't throw
 function applyFiltersSafe() {
 try {
 const skuSearch = document.getElementById('searchSku')?.value?.trim().toLowerCase() || '';
@@ -976,7 +1021,6 @@ renderReviewsTable();
 updateStats();
 } catch (e) {
 addLog('error', 'Ошибка фильтрации', e.message);
-// Show all reviews if filtering fails
 state.filteredReviews = [...state.reviews];
 renderReviewsTable();
 updateStats();
@@ -1119,6 +1163,13 @@ if (!apiKey) { showToast('Введите Gemini API Key', 'error'); return; }
 const review = state.reviews.find(r => r.id === reviewId);
 if (!review) return;
 
+if (state.slowMode) {
+if (!checkDailyLimit()) {
+showToast('Превышен дневной лимит 500 запросов', 'error');
+return;
+}
+}
+
 const model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash-latest';
 const promptTemplate = localStorage.getItem('gemini_prompt') || 'Ты — помощник продавца на Ozon.';
 const maxTokens = parseInt(localStorage.getItem('gemini_max_tokens')) || 200;
@@ -1155,15 +1206,36 @@ if (data.candidates?.[0]?.content?.parts) fullText = data.candidates[0].content.
 fullText = fullText.trim() || 'Не удалось сгенерировать';
 
 review.response = fullText;
+if (state.slowMode) incrementDailyCounter();
+
 const textarea = document.querySelector(`textarea[data-id="${reviewId}"]`);
 if (textarea) { textarea.value = fullText; textarea.classList.add('gemini-filled'); }
+
+// Auto-send if Slow Mode is on
+if (state.slowMode) {
+addLog('info', 'Slow Mode: Отправка ответа на Ozon...');
+await sendSingleResponseToOzon(review);
+}
 
 addLog('response', 'Ответ сгенерирован', { review_id: reviewId.substring(0, 8), text: fullText.substring(0, 100) });
 showToast('Ответ сгенерирован', 'success');
 renderReviewsTable();
+updateDailyCounterDisplay();
 } catch (e) {
 addLog('error', 'Ошибка генерации', e.message);
 showToast(`Ошибка: ${e.message}`, 'error');
+}
+}
+
+async function sendSingleResponseToOzon(review) {
+try {
+const requestBody = { review_id: review.id, text: review.response, mark_review_as_processed: true };
+const res = await fetch(getOzonUrl('/v1/review/comment/create'), { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(requestBody) });
+if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`HTTP ${res.status}: ${e.message || e.code || res.statusText}`); }
+review.status = 'PROCESSED';
+addLog('response', `Ответ отправлен`, await res.json());
+} catch (e) {
+addLog('error', `Ошибка отправки ${review.id.substring(0,8)}`, e.message);
 }
 }
 
@@ -1299,6 +1371,12 @@ if (!apiKey) { showToast('Введите Gemini API Key', 'error'); return; }
 const selectedReviews = state.reviews.filter(r => state.selectedIds.has(r.id));
 if (selectedReviews.length === 0) { showToast('Выберите отзывы', 'error'); return; }
 if (!document.getElementById('geminiModel').value) { showToast('Обновите список моделей', 'error'); return; }
+
+if (state.slowMode && !checkDailyLimit()) {
+showToast('Превышен дневной лимит 500 запросов. Попробуйте завтра.', 'error');
+return;
+}
+
 document.getElementById('geminiCount').textContent = selectedReviews.length;
 document.getElementById('geminiModal').classList.remove('hidden');
 document.getElementById('geminiProgress').classList.add('hidden');
@@ -1307,6 +1385,83 @@ document.getElementById('btnStartGemini').innerHTML = '<i class="ph ph-play mr-2
 }
 
 function closeGeminiModal() { document.getElementById('geminiModal').classList.add('hidden'); }
+
+// Daily Limit Helper Functions
+function getDailyUsageKey() {
+return `ai_usage_${new Date().toISOString().slice(0, 10)}`; // Format: ai_usage_2023-10-25
+}
+
+function checkDailyLimit() {
+const key = getDailyUsageKey();
+const count = parseInt(localStorage.getItem(key) || '0');
+return count < 500;
+}
+
+function incrementDailyCounter() {
+const key = getDailyUsageKey();
+const current = parseInt(localStorage.getItem(key) || '0');
+localStorage.setItem(key, (current + 1).toString());
+updateDailyCounterDisplay();
+}
+
+function updateDailyCounterDisplay() {
+const key = getDailyUsageKey();
+const count = parseInt(localStorage.getItem(key) || '0');
+document.getElementById('dailyCounterDisplay').textContent = count;
+}
+
+async function startGeminiGeneration() {
+const selectedReviews = state.reviews.filter(r => state.selectedIds.has(r.id));
+const promptTemplate = document.getElementById('geminiPromptTemplate').value.trim();
+
+document.getElementById('btnStartGemini').disabled = true;
+document.getElementById('btnStartGemini').innerHTML = '<i class="ph ph-spinner spinner mr-2"></i> Генерация...';
+document.getElementById('geminiProgress').classList.remove('hidden');
+
+let completed = 0, errors = 0;
+
+for (let i = 0; i < selectedReviews.length; i++) {
+const review = selectedReviews[i];
+try {
+updateGeminiProgress(completed + errors, selectedReviews.length, `Обработка ${review.id.substring(0, 8)}...`);
+
+const response = await generateSingleReviewWithAI(review, promptTemplate);
+review.response = response;
+completed++;
+
+if (state.slowMode) incrementDailyCounter();
+
+const textarea = document.querySelector(`textarea[data-id="${review.id}"]`);
+if (textarea) { textarea.value = response; textarea.classList.add('gemini-filled'); }
+
+// Auto-send if Slow Mode is on
+if (state.slowMode) {
+addLog('info', `Slow Mode: Авто-отправка ${review.id.substring(0, 8)}...`);
+await sendSingleResponseToOzon(review);
+// Refresh table to update status immediately
+renderReviewsTable();
+}
+
+// Rate Limiting Delay: ~5-6 seconds between requests (15 per minute)
+// This also helps stay under the 250k tokens/min limit by spacing them out
+if (state.slowMode && i < selectedReviews.length - 1) {
+updateGeminiProgress(completed + errors, selectedReviews.length, `Ожидание лимита (5с)...`);
+await new Promise(resolve => setTimeout(resolve, 5500));
+}
+
+} catch (e) { errors++; addLog('error', 'Ошибка генерации', e.message); }
+}
+
+updateGeminiProgress(completed, selectedReviews.length, 'Готово!');
+document.getElementById('btnStartGemini').innerHTML = '<i class="ph ph-check mr-2"></i> Завершено';
+setTimeout(() => {
+closeGeminiModal();
+if (!state.slowMode) renderReviewsTable(); // If not slow mode, refresh table now
+showToast(`Сгенерировано: ${completed}, Ошибок: ${errors}`, completed > 0 ? 'success' : 'error');
+addLog('info', 'Генерация завершена', { completed, errors });
+updateDailyCounterDisplay();
+}, 1000);
+}
 
 async function generateSingleReviewWithAI(review, promptTemplate) {
 const apiKey = document.getElementById('geminiApiKey').value.trim();
@@ -1356,36 +1511,6 @@ return fullText;
 } catch (e) { addLog('error', 'Ошибка Gemini', e.message); throw new Error(e.message); }
 }
 
-async function startGeminiGeneration() {
-const selectedReviews = state.reviews.filter(r => state.selectedIds.has(r.id));
-const promptTemplate = document.getElementById('geminiPromptTemplate').value.trim();
-
-document.getElementById('btnStartGemini').disabled = true;
-document.getElementById('btnStartGemini').innerHTML = '<i class="ph ph-spinner spinner mr-2"></i> Генерация...';
-document.getElementById('geminiProgress').classList.remove('hidden');
-
-let completed = 0, errors = 0;
-for (const review of selectedReviews) {
-try {
-updateGeminiProgress(completed + errors, selectedReviews.length, `Обработка ${review.id.substring(0, 8)}...`);
-const response = await generateSingleReviewWithAI(review, promptTemplate);
-review.response = response;
-completed++;
-const textarea = document.querySelector(`textarea[data-id="${review.id}"]`);
-if (textarea) { textarea.value = response; textarea.classList.add('gemini-filled'); }
-} catch (e) { errors++; }
-}
-
-updateGeminiProgress(completed, selectedReviews.length, 'Готово!');
-document.getElementById('btnStartGemini').innerHTML = '<i class="ph ph-check mr-2"></i> Завершено';
-setTimeout(() => {
-closeGeminiModal();
-renderReviewsTable();
-showToast(`Сгенерировано: ${completed}, Ошибок: ${errors}`, completed > 0 ? 'success' : 'error');
-addLog('info', 'Генерация завершена', { completed, errors });
-}, 1000);
-}
-
 function updateGeminiProgress(p, t, detail) {
 const percent = Math.round((p/t)*100);
 document.getElementById('geminiProgressBar').style.width = `${percent}%`;
@@ -1418,6 +1543,33 @@ const result = await response.json();
 if (response.ok) { showToast('Gemini подключен!', 'success'); addLog('response', 'Gemini API: OK', result); }
 else { showToast(`Ошибка: ${result.error?.message || response.status}`, 'error'); addLog('error', `Gemini API: ${response.status}`, result); }
 } catch (err) { showToast('Сетевая ошибка', 'error'); addLog('error', 'Fetch Error', err.message); }
+}
+
+// Gemini Models
+async function updateGeminiModels() {
+const apiKey = document.getElementById('geminiApiKey').value.trim();
+if (!apiKey) { showToast('Введите API Key', 'error'); return; }
+const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+addLog('request', 'Запрос списка моделей', { url });
+try {
+const response = await fetch(url);
+const data = await response.json();
+if (data.models) {
+const select = document.getElementById('geminiModel');
+select.innerHTML = '';
+const supportedModels = data.models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'));
+supportedModels.forEach(m => {
+const modelId = m.name.replace('models/', '');
+const option = document.createElement('option');
+option.value = modelId;
+option.textContent = m.displayName || modelId;
+if (modelId.includes('gemini-1.5-flash')) option.selected = true;
+select.appendChild(option);
+});
+showToast(`Найдено моделей: ${supportedModels.length}`, 'success');
+addLog('response', 'Список моделей обновлен', supportedModels.map(m => m.name.replace('models/', '')));
+} else { throw new Error(data.error?.message || 'Не удалось получить список'); }
+} catch (err) { showToast('Ошибка: ' + err.message, 'error'); addLog('error', 'Models Error', err.message); }
 }
 </script>
 </body>
