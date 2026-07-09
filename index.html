@@ -1,166 +1,160 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ozon Reviews AI Manager Pro</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/index.min.css">
-<style>
-body { font-family: 'Inter', sans-serif; background: #0b1120; color: #e2e8f0; }
-.glass { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(148, 163, 184, 0.15); }
-.btn { transition: all 0.2s ease; cursor: pointer; }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.btn-primary:hover { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); transform: translateY(-1px); }
-.btn-success { background: linear-gradient(135deg, #10b981, #059669); }
-.btn-success:hover { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); transform: translateY(-1px); }
-.btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.btn-warning:hover { box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); transform: translateY(-1px); }
-.btn-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-.btn-purple:hover { box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4); transform: translateY(-1px); }
-.btn-gemini { background: linear-gradient(135deg, #4285f4, #a855f7, #ea4335); }
-.btn-gemini:hover { box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); transform: translateY(-1px); }
-.btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
-.btn-danger:hover { box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
-.btn-sm { padding: 4px 8px; font-size: 0.7rem; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ozon Reviews AI Manager Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/index.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0b1120; color: #e2e8f0; }
+        .glass { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(148, 163, 184, 0.15); }
+        .btn { transition: all 0.2s ease; cursor: pointer; }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .btn-primary:hover { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); transform: translateY(-1px); }
+        .btn-success { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-success:hover { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); transform: translateY(-1px); }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .btn-warning:hover { box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); transform: translateY(-1px); }
+        .btn-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .btn-purple:hover { box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4); transform: translateY(-1px); }
+        .btn-gemini { background: linear-gradient(135deg, #4285f4, #a855f7, #ea4335); }
+        .btn-gemini:hover { box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); transform: translateY(-1px); }
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .btn-danger:hover { box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
+        .btn-sm { padding: 4px 8px; font-size: 0.7rem; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
-/* Исправление прокрутки и фиксации шапки */
-.table-wrapper { 
-    overflow: auto; 
-    max-height: 70vh; 
-    position: relative; 
-}
-table { 
-    border-collapse: collapse; 
-    width: 100%; 
-    table-layout: fixed; 
-}
-/* Шапка таблицы фиксируется */
-th { 
-    background: #1e293b; 
-    position: sticky; 
-    top: 0; 
-    z-index: 30; 
-    user-select: none; 
-    white-space: nowrap; 
-    padding: 12px 8px; 
-    border-bottom: 2px solid #334155; 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Тень под шапкой */
-}
-th .resize-handle { position: absolute; right: 0; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 20; }
-th .resize-handle:hover { background: rgba(59, 130, 246, 0.5); }
+        /* STICKY HEADER FIX */
+        .table-wrapper { 
+            overflow-x: auto; 
+            max-height: 70vh; 
+            position: relative; 
+            overflow-y: auto; 
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            table-layout: fixed; 
+        }
+        th { 
+            background: #1e293b; 
+            position: sticky; 
+            top: 0; 
+            z-index: 50; /* Higher z-index to stay on top */
+            user-select: none; 
+            white-space: nowrap; 
+            padding: 12px 8px; 
+            border-bottom: 2px solid #334155; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Shadow to separate from content */
+        }
+        th .resize-handle { position: absolute; right: 0; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 20; }
+        th .resize-handle:hover { background: rgba(59, 130, 246, 0.5); }
 
-td { border-bottom: 1px solid #334155; padding: 10px 8px; vertical-align: middle; }
-tr:hover td { background: rgba(51, 65, 85, 0.4); }
+        td { border-bottom: 1px solid #334155; padding: 10px 8px; vertical-align: middle; }
+        tr:hover td { background: rgba(51, 65, 85, 0.4); }
 
-.status-badge { padding: 3px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-.badge-new { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
-.badge-viewed { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
-.badge-processed { background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .status-badge { padding: 3px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-new { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .badge-viewed { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-processed { background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.3); }
 
-.review-text { max-height: 120px; overflow-y: auto; line-height: 1.5; font-size: 0.85rem; }
-.product-info-cell { font-size: 0.8rem; line-height: 1.4; }
-.product-name { font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
-.product-desc { color: #94a3b8; font-size: 0.75rem; max-height: 100px; overflow-y: auto; white-space: pre-wrap; padding-right: 4px; }
-.product-desc::-webkit-scrollbar { width: 4px; }
-.product-desc::-webkit-scrollbar-track { background: rgba(51, 65, 85, 0.3); border-radius: 2px; }
-.product-desc::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
-.product-sku { color: #64748b; font-size: 0.7rem; font-family: monospace; }
+        .review-text { max-height: 120px; overflow-y: auto; line-height: 1.5; font-size: 0.85rem; }
+        .product-info-cell { font-size: 0.8rem; line-height: 1.4; }
+        .product-name { font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
+        .product-desc { color: #94a3b8; font-size: 0.75rem; max-height: 100px; overflow-y: auto; white-space: pre-wrap; padding-right: 4px; }
+        .product-desc::-webkit-scrollbar { width: 4px; }
+        .product-desc::-webkit-scrollbar-track { background: rgba(51, 65, 85, 0.3); border-radius: 2px; }
+        .product-desc::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
+        .product-sku { color: #64748b; font-size: 0.7rem; font-family: monospace; }
+        .response-input { min-height: 100px; width: 100%; resize: vertical; background: #0f172a; border: 1px solid #475569; color: #e2e8f0; padding: 8px; border-radius: 6px; font-size: 0.85rem; }
+        .response-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+        .response-input.gemini-filled { border-color: #10b981; background: #022c22; }
 
-/* Стили для фото товара */
-.product-photo-cell { display: flex; align-items: center; justify-content: center; height: 100%; min-height: 50px; }
-.product-photo-img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #334155; }
-.product-photo-placeholder { width: 50px; height: 50px; background: #1e293b; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #475569; font-size: 1.2rem; }
+        .progress-bar { height: 4px; background: #334155; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #a855f7); transition: width 0.3s ease; width: 0%; }
 
-.response-input { min-height: 100px; width: 100%; resize: vertical; background: #0f172a; border: 1px solid #475569; color: #e2e8f0; padding: 8px; border-radius: 6px; font-size: 0.85rem; }
-.response-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
-.response-input.gemini-filled { border-color: #10b981; background: #022c22; }
+        .spinner { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-.progress-bar { height: 4px; background: #334155; border-radius: 4px; overflow: hidden; margin-top: 8px; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #a855f7); transition: width 0.3s ease; width: 0%; }
+        .toast { position: fixed; bottom: 24px; right: 24px; z-index: 50; padding: 12px 16px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards; max-width: 400px; word-break: break-word; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateY(10px); } }
 
-.spinner { animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.fade-in { animation: fadeIn 0.3s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .checkbox-custom { width: 18px; height: 18px; accent-color: #3b82f6; cursor: pointer; }
+        .tab-btn { padding: 8px 16px; border-radius: 6px; font-weight: 500; transition: all 0.2s; cursor: pointer; user-select: none; }
+        .tab-btn.active { background: #3b82f6; color: white; }
+        .tab-btn:not(.active) { background: transparent; color: #94a3b8; }
+        .tab-btn:not(.active):hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
 
-.toast { position: fixed; bottom: 24px; right: 24px; z-index: 50; padding: 12px 16px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards; max-width: 400px; word-break: break-word; }
-@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-@keyframes fadeOut { to { opacity: 0; transform: translateY(10px); } }
+        select.format-select { background: #0f172a; border: 1px solid #334155; color: #e2e8f0; border-radius: 4px 0 0 4px; padding: 0 8px; font-size: 0.8rem; }
+        select.format-select:focus { outline: none; border-color: #3b82f6; }
+        .group-btn { display: inline-flex; border-radius: 6px; overflow: visible; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; width: 90%; max-width: 800px; max-height: 85vh; overflow-y: auto; }
+        .template-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+        .template-card:hover { border-color: #475569; }
+        .log-entry { padding: 8px; border-bottom: 1px solid #334155; font-family: monospace; font-size: 0.75rem; }
+        .log-entry:hover { background: rgba(51, 65, 85, 0.3); }
+        .log-time { color: #64748b; }
+        .log-type { font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-right: 8px; font-size: 0.7rem; }
+        .log-type.request { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+        .log-type.response { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+        .log-type.error { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+        .log-type.info { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+        .log-detail { color: #cbd5e1; margin-top: 4px; white-space: pre-wrap; word-break: break-all; }
+        .json-viewer { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 12px; margin-top: 8px; font-family: monospace; font-size: 0.75rem; max-height: 300px; overflow: auto; }
+        .action-btns { display: flex; gap: 4px; margin-top: 4px; }
+        .action-btn { padding: 3px 6px; border-radius: 4px; font-size: 0.65rem; border: 1px solid #475569; cursor: pointer; transition: all 0.15s; background: rgba(30, 41, 59, 0.8); }
+        .action-btn:hover { background: #334155; border-color: #64748b; }
+        .action-btn.ai { border-color: #a855f7; color: #c084fc; }
+        .action-btn.ai:hover { background: rgba(168, 85, 247, 0.2); }
+        .action-btn.template { border-color: #f59e0b; color: #fbbf24; }
+        .action-btn.template:hover { background: rgba(245, 158, 11, 0.2); }
+        .action-btn.save { border-color: #10b981; color: #34d399; }
+        .action-btn.save:hover { background: rgba(16, 185, 129, 0.2); }
+        .loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 17, 32, 0.8); display: flex; align-items: center; justify-content: center; z-index: 5; backdrop-filter: blur(2px); }
+        .error-banner { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; padding: 12px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
 
-.checkbox-custom { width: 18px; height: 18px; accent-color: #3b82f6; cursor: pointer; }
-.tab-btn { padding: 8px 16px; border-radius: 6px; font-weight: 500; transition: all 0.2s; cursor: pointer; user-select: none; }
-.tab-btn.active { background: #3b82f6; color: white; }
-.tab-btn:not(.active) { background: transparent; color: #94a3b8; }
-.tab-btn:not(.active):hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+        /* Multi-select dropdown */
+        .multi-select-wrapper { position: relative; }
+        .multi-select-trigger { display: flex; align-items: center; gap: 4px; padding: 4px 10px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: #e2e8f0; transition: border-color 0.15s; }
+        .multi-select-trigger:hover { border-color: #fbbf24; }
+        .multi-select-trigger.open { border-color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
+        .multi-select-dropdown { position: fixed; background: #1e293b; border: 1px solid #334155; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 1000; min-width: 160px; display: none; overflow: hidden; }
+        .multi-select-dropdown.open { display: block; animation: fadeIn 0.15s ease-out; }
+        .multi-select-option { display: flex; align-items: center; gap: 8px; padding: 8px 12px; cursor: pointer; font-size: 0.8rem; transition: background 0.1s; }
+        .multi-select-option:hover { background: rgba(51, 65, 85, 0.6); }
+        .multi-select-option.selected { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+        .multi-select-option .check-icon { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #475569; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; transition: all 0.15s; }
+        .multi-select-option.selected .check-icon { background: #fbbf24; border-color: #fbbf24; color: #0b1120; }
+        .multi-select-divider { height: 1px; background: #334155; margin: 4px 0; }
 
-select.format-select { background: #0f172a; border: 1px solid #334155; color: #e2e8f0; border-radius: 4px 0 0 4px; padding: 0 8px; font-size: 0.8rem; }
-select.format-select:focus { outline: none; border-color: #3b82f6; }
-.group-btn { display: inline-flex; border-radius: 6px; overflow: visible; }
-.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 100; display: flex; align-items: center; justify-content: center; }
-.modal-content { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; width: 90%; max-width: 800px; max-height: 85vh; overflow-y: auto; }
-.template-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
-.template-card:hover { border-color: #475569; }
-.log-entry { padding: 8px; border-bottom: 1px solid #334155; font-family: monospace; font-size: 0.75rem; }
-.log-entry:hover { background: rgba(51, 65, 85, 0.3); }
-.log-time { color: #64748b; }
-.log-type { font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-right: 8px; font-size: 0.7rem; }
-.log-type.request { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
-.log-type.response { background: rgba(34, 197, 94, 0.2); color: #86efac; }
-.log-type.error { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
-.log-type.info { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
-.log-detail { color: #cbd5e1; margin-top: 4px; white-space: pre-wrap; word-break: break-all; }
-.json-viewer { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 12px; margin-top: 8px; font-family: monospace; font-size: 0.75rem; max-height: 300px; overflow: auto; }
-.action-btns { display: flex; gap: 4px; margin-top: 4px; }
-.action-btn { padding: 3px 6px; border-radius: 4px; font-size: 0.65rem; border: 1px solid #475569; cursor: pointer; transition: all 0.15s; background: rgba(30, 41, 59, 0.8); }
-.action-btn:hover { background: #334155; border-color: #64748b; }
-.action-btn.ai { border-color: #a855f7; color: #c084fc; }
-.action-btn.ai:hover { background: rgba(168, 85, 247, 0.2); }
-.action-btn.template { border-color: #f59e0b; color: #fbbf24; }
-.action-btn.template:hover { background: rgba(245, 158, 11, 0.2); }
-.action-btn.save { border-color: #10b981; color: #34d399; }
-.action-btn.save:hover { background: rgba(16, 185, 129, 0.2); }
-.loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 17, 32, 0.8); display: flex; align-items: center; justify-content: center; z-index: 5; backdrop-filter: blur(2px); }
-.error-banner { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; padding: 12px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+        /* Media cell styling */
+        .media-cell { display: flex; align-items: center; justify-content: center; height: 100%; min-height: 50px; }
+        .media-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: all 0.15s; font-size: 0.85rem; font-weight: 600; border: 1px solid #334155; background: rgba(30, 41, 59, 0.8); color: #cbd5e1; }
+        .media-btn:hover { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: #93c5fd; }
+        .media-btn.has-media { border-color: #f59e0b; color: #fbbf24; }
+        .media-btn.has-media:hover { background: rgba(245, 158, 11, 0.2); }
+        .media-no { color: #475569; font-size: 0.8rem; }
+        .media-icon { font-size: 1.2rem; }
+        .media-viewer-img { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
+        .media-viewer-img:hover { transform: scale(1.02); }
+        .media-viewer-video { width: 100%; border-radius: 8px; max-height: 400px; background: #000; }
 
-/* Multi-select dropdown */
-.multi-select-wrapper { position: relative; }
-.multi-select-trigger { display: flex; align-items: center; gap: 4px; padding: 4px 10px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: #e2e8f0; transition: border-color 0.15s; }
-.multi-select-trigger:hover { border-color: #fbbf24; }
-.multi-select-trigger.open { border-color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
-.multi-select-dropdown { position: fixed; background: #1e293b; border: 1px solid #334155; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 1000; min-width: 160px; display: none; overflow: hidden; }
-.multi-select-dropdown.open { display: block; animation: fadeIn 0.15s ease-out; }
-.multi-select-option { display: flex; align-items: center; gap: 8px; padding: 8px 12px; cursor: pointer; font-size: 0.8rem; transition: background 0.1s; }
-.multi-select-option:hover { background: rgba(51, 65, 85, 0.6); }
-.multi-select-option.selected { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
-.multi-select-option .check-icon { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #475569; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; transition: all 0.15s; }
-.multi-select-option.selected .check-icon { background: #fbbf24; border-color: #fbbf24; color: #0b1120; }
-.multi-select-divider { height: 1px; background: #334155; margin: 4px 0; }
-
-/* Media cell styling */
-.media-cell { display: flex; align-items: center; justify-content: center; height: 100%; min-height: 50px; }
-.media-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: all 0.15s; font-size: 0.85rem; font-weight: 600; border: 1px solid #334155; background: rgba(30, 41, 59, 0.8); color: #cbd5e1; }
-.media-btn:hover { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: #93c5fd; }
-.media-btn.has-media { border-color: #f59e0b; color: #fbbf24; }
-.media-btn.has-media:hover { background: rgba(245, 158, 11, 0.2); }
-.media-no { color: #475569; font-size: 0.8rem; }
-.media-icon { font-size: 1.2rem; }
-.media-viewer-img { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
-.media-viewer-img:hover { transform: scale(1.02); }
-.media-viewer-video { width: 100%; border-radius: 8px; max-height: 400px; background: #000; }
-
-/* Switch Toggle Style */
-.switch { position: relative; display: inline-block; width: 40px; height: 20px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 20px; }
-.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
-input:checked + .slider { background-color: #3b82f6; }
-input:checked + .slider:before { transform: translateX(20px); }
-</style>
+        /* Switch Toggle Style */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider:before { transform: translateX(20px); }
+    </style>
 </head>
 <body class="min-h-screen">
 <div class="max-w-[98%] mx-auto px-4 py-6">
@@ -241,7 +235,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Статус:</label>
 <select id="filterStatus" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none">
-<option value="ALL" selected>Все</option>
+<option value="ALL" selected>Все</option> <!-- CHANGED DEFAULT TO ALL -->
 <option value="NEW">Новые</option>
 <option value="VIEWED">Просмотренные</option>
 <option value="PROCESSED">Обработанные</option>
@@ -307,7 +301,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Дата:</label>
 <select id="sortDate" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-32" onchange="applyFilters()">
-<option value="desc">📅 Новые</option>
+<option value="desc"> Новые</option>
 <option value="asc">📅 Старые</option>
 </select>
 </div>
@@ -328,7 +322,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 <th style="width: 70px;">Дата</th>
 <th style="width: 60px;">Ozon ID</th>
 <th style="width: 45px;">Оценка</th>
-<th style="width: 80px;">Фото товара</th> <!-- Новая колонка -->
+<th style="width: 80px;">Фото товара</th>
 <th style="width: 250px;">Товар</th>
 <th style="width: 80px;">Медиа</th>
 <th style="width: 100px;">Статус</th>
@@ -572,7 +566,7 @@ closeRatingDropdown();
 window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); }, true);
 window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); });
 
-addLog('info', 'Приложение запущено', { version: '9.0 - API v2' });
+addLog('info', 'Приложение запущено', { version: '9.1 - Fix Table & Auto-Status' });
 });
 
 function loadSettings() {
@@ -857,7 +851,7 @@ if (template && review) { review.response = template.text; const textarea = docu
 closeTemplateSelectModal(); showToast('Шаблон применён', 'success');
 }
 
-// Product description fetching (Updated to save primary_image)
+// Product description fetching
 async function fetchProductDescriptionsForReviews() {
 const uniqueSkus = [...new Set(state.reviews.map(r => r.sku).filter(s => s && !state.productDescriptions[s]))];
 if (uniqueSkus.length === 0) return;
@@ -870,7 +864,6 @@ for (let i = 0; i < uniqueSkus.length; i += batchSize) {
 const batch = uniqueSkus.slice(i, i + batchSize);
 updateProgress(i, uniqueSkus.length, `Загрузка описаний товаров ${i + 1}-${Math.min(i + batchSize, uniqueSkus.length)}...`);
 try {
-// v4/product/info/attributes returns primary_image
 const res = await fetch(getOzonUrl('/v4/product/info/attributes'), {
 method: 'POST',
 headers: getAuthHeaders(),
@@ -886,7 +879,7 @@ name: p.name || '',
 description: '',
 offer_id: p.offer_id || '',
 sku: p.sku,
-primary_image: p.primary_image || '' // Сохраняем фото
+primary_image: p.primary_image || ''
 };
 }
 });
@@ -896,7 +889,7 @@ loaded += batch.length;
 } catch (e) {
 addLog('error', `Ошибка загрузки описаний`, e.message);
 }
-await new Promise(r => setTimeout(r, 300)); // Delay to avoid rate limiting
+await new Promise(r => setTimeout(r, 300)); // Delay
 }
 const offerIds = Object.values(state.productDescriptions).map(p => p.offer_id).filter(Boolean);
 if (offerIds.length > 0) {
@@ -957,8 +950,6 @@ try {
 let page = 0;
 
 while (page < maxPages) {
-// Update to API v2: uses filters object
-// Note: v2 review/list might use different status filters, but we'll fetch broad data and filter client-side
 const requestBody = {
 limit: limit,
 sort_dir: sortDir,
@@ -983,7 +974,6 @@ throw new Error(`HTTP ${res.status}: ${errorData.message || errorData.code || re
 }
 
 const data = await res.json();
-// v2 Response structure: { reviews: [...], has_next: bool, last_id: string }
 const reviewsList = data.reviews || [];
 addLog('response', `Получено отзывов: ${reviewsList.length}`, { has_next: data.has_next });
 
@@ -998,7 +988,7 @@ sku: r.sku,
 rating: r.rating,
 text: r.text || '',
 published_at: r.published_at,
-status: r.status || 'NEW', // v2 statuses: NEW, VIEWED, PROCESSED
+status: r.status || 'NEW',
 response: '',
 photos_amount: r.photos_amount || 0,
 videos_amount: r.videos_amount || 0,
@@ -1057,7 +1047,6 @@ const statusFilter = document.getElementById('filterStatus')?.value || 'ALL';
 
 let filtered = [...state.reviews];
 
-// Apply Status Filter
 if (statusFilter !== 'ALL') {
 filtered = filtered.filter(r => r.status === statusFilter);
 }
@@ -1092,7 +1081,6 @@ renderReviewsTable();
 updateStats();
 } catch (e) {
 addLog('error', 'Ошибка фильтрации', e.message);
-// Show all reviews if filtering fails
 state.filteredReviews = [...state.reviews];
 renderReviewsTable();
 updateStats();
@@ -1130,7 +1118,6 @@ const mediaHtml = totalMedia > 0
 : `<div class="media-cell"><span class="media-no">—</span></div>`;
 
 const prod = state.productDescriptions[r.sku];
-// Photo Column Logic
 let photoHtml = '';
 if (prod && prod.primary_image) {
 photoHtml = `<div class="product-photo-cell">
@@ -1150,7 +1137,6 @@ ${prod.description ? `<div class="product-desc">${prod.description}</div>` : ''}
 </div>
 ` : `<div class="product-sku">Ozon ID: ${r.sku}</div>`;
 
-// Status Badge Logic
 let statusBadgeClass = 'badge-new';
 let statusText = 'Новый';
 if (r.status === 'VIEWED') { statusBadgeClass = 'badge-viewed'; statusText = 'Просмотрен'; }
@@ -1179,7 +1165,7 @@ tbody.appendChild(tr);
 });
 }
 
-// Media handling - Updated to v2/review/info
+// Media handling
 async function showReviewMedia(reviewId) {
 const review = state.reviews.find(r => r.id === reviewId);
 if (!review) return;
@@ -1189,7 +1175,6 @@ document.getElementById('mediaContent').innerHTML = '<div class="text-center py-
 
 if (review.photos.length === 0 && review.videos.length === 0) {
 try {
-// Use v2 endpoint
 const res = await fetch(getOzonUrl('/v2/review/info'), {
 method: 'POST',
 headers: getAuthHeaders(),
@@ -1320,13 +1305,37 @@ showToast(`Ошибка: ${e.message}`, 'error');
 
 async function sendSingleResponseToOzon(review) {
 try {
+if (!review.text || review.text.trim().length === 0) {
+addLog('info', `Отзыв ${review.id.substring(0, 8)} без текста. Изменяю статус на PROCESSED.`);
+await changeReviewStatus(review.id, 'PROCESSED');
+} else {
 const requestBody = { review_id: review.id, text: review.response, mark_review_as_processed: true };
 const res = await fetch(getOzonUrl('/v1/review/comment/create'), { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(requestBody) });
 if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`HTTP ${res.status}: ${e.message || e.code || res.statusText}`); }
-review.status = 'PROCESSED';
 addLog('response', `Ответ отправлен`, await res.json());
+await changeReviewStatus(review.id, 'PROCESSED');
+}
+review.status = 'PROCESSED';
+// Remove from state
+state.reviews = state.reviews.filter(r => r.id !== review.id);
 } catch (e) {
 addLog('error', `Ошибка отправки ${review.id.substring(0,8)}`, e.message);
+}
+}
+
+async function changeReviewStatus(reviewId, status) {
+try {
+const res = await fetch(getOzonUrl('/v1/review/change-status'), {
+method: 'POST',
+headers: getAuthHeaders(),
+body: JSON.stringify({ review_ids: [reviewId], status: status })
+});
+if (!res.ok) throw new Error(`HTTP ${res.status}`);
+addLog('info', `Статус отзыва ${reviewId.substring(0, 8)} изменен на ${status}`);
+return true;
+} catch (e) {
+addLog('error', `Ошибка изменения статуса ${reviewId}`, e.message);
+return false;
 }
 }
 
@@ -1403,8 +1412,8 @@ input.value = '';
 
 async function sendResponses() {
 if (state.selectedIds.size === 0) return showToast('Выберите отзывы', 'error');
-const toSend = state.reviews.filter(r => state.selectedIds.has(r.id) && r.response?.trim());
-if (toSend.length === 0) return showToast('Нет ответов для отправки', 'error');
+const toSend = state.reviews.filter(r => state.selectedIds.has(r.id));
+if (toSend.length === 0) return showToast('Нет отзывов для отправки', 'error');
 
 document.getElementById('btnSend').disabled = true;
 document.getElementById('btnSend').innerHTML = '<i class="ph ph-spinner spinner mr-2"></i> Отправка...';
@@ -1412,19 +1421,13 @@ let sent = 0, err = 0;
 
 for (const r of toSend) {
 try {
-updateProgress(sent + err, toSend.length, `Отправка ответа...`);
-const requestBody = { review_id: r.id, text: r.response, mark_review_as_processed: true };
-addLog('request', `Отправка ответа`, { review_id: r.id });
-
-const res = await fetch(getOzonUrl('/v1/review/comment/create'), { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(requestBody) });
-if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`HTTP ${res.status}: ${e.message || e.code || res.statusText}`); }
-
-addLog('response', `Ответ отправлен`, await res.json());
-r.status = 'PROCESSED'; state.selectedIds.delete(r.id); sent++;
+updateProgress(sent + err, toSend.length, `Отправка ${r.id.substring(0, 8)}...`);
+await sendSingleResponseToOzon(r);
+sent++;
 } catch (e) { err++; addLog('error', `Ошибка отправки ${r.id.substring(0,8)}`, e.message); }
 }
 applyFilters(); hideProgress();
-showToast(`Отправлено: ${sent} | Ошибки: ${err}`, sent > 0 ? 'success' : 'error');
+showToast(`Отправлено/Изменено: ${sent} | Ошибки: ${err}`, sent > 0 ? 'success' : 'error');
 document.getElementById('btnSend').disabled = false;
 document.getElementById('btnSend').innerHTML = '<i class="ph ph-paper-plane-right mr-2"></i> Отправить';
 }
@@ -1552,6 +1555,7 @@ if (textarea) { textarea.value = response; textarea.classList.add('gemini-filled
 if (state.slowMode) {
 addLog('info', `Slow Mode: Авто-отправка ${review.id.substring(0, 8)}...`);
 await sendSingleResponseToOzon(review);
+// Refresh table
 renderReviewsTable();
 }
 
@@ -1631,9 +1635,9 @@ document.getElementById('geminiProgressDetail').textContent = detail;
 }
 
 async function testOzonConnection() {
-addLog('request', 'Тест подключения к Ozon API', { url: '/v1/review/count' });
+addLog('request', 'Тест подключения к Ozon API', { url: '/v2/review/count' });
 try {
-const res = await fetch(getOzonUrl('/v1/review/count'), { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({}) });
+const res = await fetch(getOzonUrl('/v2/review/count'), { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({}) });
 const data = await res.json();
 addLog('response', `Ozon API: ${res.status}`, data);
 if (res.ok) { showToast(`Подключение успешно! Всего отзывов: ${data.total}`, 'success'); }
