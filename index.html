@@ -41,16 +41,21 @@
             width: 100%; 
             table-layout: fixed; 
         }
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
         th { 
             background: #1e293b; 
             position: sticky; 
             top: 0; 
-            z-index: 50; /* Higher z-index to stay on top */
+            z-index: 50;
             user-select: none; 
             white-space: nowrap; 
             padding: 12px 8px; 
             border-bottom: 2px solid #334155; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Shadow to separate from content */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         th .resize-handle { position: absolute; right: 0; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 20; }
         th .resize-handle:hover { background: rgba(59, 130, 246, 0.5); }
@@ -235,7 +240,7 @@
 <div class="flex-1"></div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Статус:</label>
-<select id="filterStatus" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none">
+<select id="filterStatus" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none" onchange="applyFilters()">
 <option value="ALL" selected>Все</option>
 <option value="NEW">Новые</option>
 <option value="VIEWED">Просмотренные</option>
@@ -567,7 +572,7 @@ closeRatingDropdown();
 window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); }, true);
 window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); });
 
-addLog('info', 'Приложение запущено', { version: '9.2 - Fix 429 & Display' });
+addLog('info', 'Приложение запущено', { version: '9.3 - Fix All Issues' });
 });
 
 function loadSettings() {
@@ -581,7 +586,7 @@ document.getElementById('geminiPromptTemplate').value = localStorage.getItem('ge
 document.getElementById('maxPages').value = localStorage.getItem('max_pages') || '5';
 
 const savedSlowMode = localStorage.getItem('slow_mode');
-state.slowMode = savedSlowMode !== 'false'; // Default to true if not set
+state.slowMode = savedSlowMode !== 'false';
 document.getElementById('slowModeToggle').checked = state.slowMode;
 updateSlowModeStatus();
 }
@@ -890,7 +895,7 @@ loaded += batch.length;
 } catch (e) {
 addLog('error', `Ошибка загрузки описаний`, e.message);
 }
-await new Promise(r => setTimeout(r, 300)); // Delay
+await new Promise(r => setTimeout(r, 300));
 }
 const offerIds = Object.values(state.productDescriptions).map(p => p.offer_id).filter(Boolean);
 if (offerIds.length > 0) {
@@ -913,7 +918,7 @@ product.description = data.result.description.replace(/<[^>]*>/g, ' ').replace(/
 }
 }
 } catch (e) { /* silent fail */ }
-await new Promise(r => setTimeout(r, 200)); // Delay
+await new Promise(r => setTimeout(r, 200));
 }
 }
 }
@@ -1004,6 +1009,9 @@ state.hasNextPage = data.has_next;
 page++;
 updateProgress(page, maxPages, `Загружено ${state.reviews.length} отзывов (${page}/${maxPages} стр.)`);
 
+// Render ALL reviews after each page
+applyFiltersSafe();
+
 if (page < maxPages && data.has_next) {
 await new Promise(resolve => setTimeout(resolve, 500));
 }
@@ -1011,8 +1019,6 @@ await new Promise(resolve => setTimeout(resolve, 500));
 if (!data.has_next) break;
 }
 
-// Render ALL reviews
-applyFiltersSafe();
 showToast(`Загружено ${state.reviews.length} отзывов`, 'success');
 addLog('info', 'Загрузка отзывов завершена', { total: state.reviews.length });
 
@@ -1310,46 +1316,104 @@ showToast(`Ошибка: ${e.message}`, 'error');
 }
 
 async function sendSingleResponseToOzon(review) {
+const maxRetries = 3;
+let retryCount = 0;
+
+while (retryCount < maxRetries) {
 try {
-// If review has no text, just change status (Fix 2)
+// If review has no text, just change status to VIEWED (Fix 2)
 if (!review.text || review.text.trim().length === 0) {
-addLog('info', `Отзыв ${review.id.substring(0, 8)} без текста. Изменяю статус на PROCESSED.`);
-// Delay to avoid 429 (Too Many Requests)
-await sleep(300); 
-await changeReviewStatus(review.id, 'PROCESSED');
+addLog('info', `Отзыв ${review.id.substring(0, 8)} без текста. Изменяю статус на VIEWED.`);
+await sleep(500); // Delay to avoid 429
+await changeReviewStatus(review.id, 'VIEWED');
+review.status = 'VIEWED';
 } else {
 // If review has text, send comment
 const requestBody = { review_id: review.id, text: review.response, mark_review_as_processed: true };
-const res = await fetch(getOzonUrl('/v1/review/comment/create'), { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(requestBody) });
-if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`HTTP ${res.status}: ${e.message || e.code || res.statusText}`); }
-addLog('response', `Ответ отправлен`, await res.json());
-await sleep(300); // Delay after comment creation too
-await changeReviewStatus(review.id, 'PROCESSED');
+const res = await fetch(getOzonUrl('/v1/review/comment/create'), { 
+    method: 'POST', 
+    headers: getAuthHeaders(), 
+    body: JSON.stringify(requestBody) 
+});
+
+if (res.status === 429) {
+    // Rate limit exceeded, wait and retry
+    retryCount++;
+    if (retryCount < maxRetries) {
+        const waitTime = retryCount * 2000; // 2s, 4s, 6s
+        addLog('info', `HTTP 429 - слишком много запросов. Ожидание ${waitTime/1000}с... (попытка ${retryCount}/${maxRetries})`);
+        await sleep(waitTime);
+        continue;
+    }
 }
+
+if (!res.ok) { 
+    const e = await res.json().catch(()=>({})); 
+    throw new Error(`HTTP ${res.status}: ${e.message || e.code || res.statusText}`); 
+}
+
+addLog('response', `Ответ отправлен`, await res.json());
+await sleep(500); // Delay after comment creation
+await changeReviewStatus(review.id, 'PROCESSED');
 review.status = 'PROCESSED';
+}
+
 // Remove from state if processed
 state.reviews = state.reviews.filter(r => r.id !== review.id);
+return; // Success, exit retry loop
+
 } catch (e) {
 addLog('error', `Ошибка отправки ${review.id.substring(0,8)}`, e.message);
+retryCount++;
+if (retryCount < maxRetries) {
+    const waitTime = retryCount * 2000;
+    addLog('info', `Повторная попытка через ${waitTime/1000}с...`);
+    await sleep(waitTime);
+} else {
+    throw e;
+}
+}
 }
 }
 
 async function changeReviewStatus(reviewId, status) {
+const maxRetries = 3;
+let retryCount = 0;
+
+while (retryCount < maxRetries) {
 try {
-// Delay before API call to mitigate 429 errors
-await sleep(200);
+await sleep(300); // Delay before API call
 const res = await fetch(getOzonUrl('/v1/review/change-status'), {
-method: 'POST',
-headers: getAuthHeaders(),
-body: JSON.stringify({ review_ids: [reviewId], status: status })
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ review_ids: [reviewId], status: status })
 });
+
+if (res.status === 429) {
+    retryCount++;
+    if (retryCount < maxRetries) {
+        const waitTime = retryCount * 2000;
+        addLog('info', `HTTP 429 при изменении статуса. Ожидание ${waitTime/1000}с...`);
+        await sleep(waitTime);
+        continue;
+    }
+}
+
 if (!res.ok) throw new Error(`HTTP ${res.status}`);
 addLog('info', `Статус отзыва ${reviewId.substring(0, 8)} изменен на ${status}`);
 return true;
 } catch (e) {
 addLog('error', `Ошибка изменения статуса ${reviewId}`, e.message);
-return false;
+retryCount++;
+if (retryCount < maxRetries) {
+    const waitTime = retryCount * 2000;
+    await sleep(waitTime);
+} else {
+    return false;
 }
+}
+}
+return false;
 }
 
 function saveResponseAsTemplate(reviewId) {
