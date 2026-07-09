@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ozon Reviews AI Manager Pro</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
@@ -235,7 +236,7 @@
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Статус:</label>
 <select id="filterStatus" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none">
-<option value="ALL" selected>Все</option> <!-- CHANGED DEFAULT TO ALL -->
+<option value="ALL" selected>Все</option>
 <option value="NEW">Новые</option>
 <option value="VIEWED">Просмотренные</option>
 <option value="PROCESSED">Обработанные</option>
@@ -370,8 +371,8 @@
 <div><label class="text-xs text-slate-400 block mb-1">Client-ID</label><input type="text" id="ozonClientId" class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="Ваш Client-ID"></div>
 <div><label class="text-xs text-slate-400 block mb-1">API-Key</label><input type="password" id="ozonApiKey" class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="Ваш API-Key"></div>
 <div><label class="text-xs text-slate-400 block mb-1">CORS Proxy</label><input type="text" id="ozonCorsProxy" class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="https://corsproxy.io/?"></div>
-<div><label class="text-xs text-slate-400 block mb-1">Макс. страниц загрузки</label><input type="number" id="maxPages" class="w-24 bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" value="3" min="1" max="10">
-<p class="text-[10px] text-slate-500 mt-1">Рекомендуется 3-5 страниц для избежания rate-limit</p></div>
+<div><label class="text-xs text-slate-400 block mb-1">Макс. страниц загрузки</label><input type="number" id="maxPages" class="w-24 bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" value="5" min="1" max="20">
+<p class="text-[10px] text-slate-500 mt-1">Рекомендуется 5-10 страниц для полного списка</p></div>
 <div class="pt-2 flex gap-2">
 <button onclick="testOzonConnection()" class="btn btn-primary px-4 py-2 rounded text-white text-sm">
 <i class="ph ph-plugs mr-1"></i> Тест подключения
@@ -566,7 +567,7 @@ closeRatingDropdown();
 window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); }, true);
 window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); });
 
-addLog('info', 'Приложение запущено', { version: '9.1 - Fix Table & Auto-Status' });
+addLog('info', 'Приложение запущено', { version: '9.2 - Fix 429 & Display' });
 });
 
 function loadSettings() {
@@ -577,7 +578,7 @@ document.getElementById('geminiModel').value = localStorage.getItem('gemini_mode
 document.getElementById('ozonCorsProxy').value = localStorage.getItem('ozon_corsProxy') || '';
 document.getElementById('geminiMaxTokens').value = localStorage.getItem('gemini_max_tokens') || '200';
 document.getElementById('geminiPromptTemplate').value = localStorage.getItem('gemini_prompt') || 'Ты — помощник продавца на Ozon. Напиши вежливый, профессиональный ответ на отзыв покупателя, всегда старайся разобраться в ситуации. Всегда упоминай товар конкретный товар в тексте отзыва, чтобы улучшать SEO карточки. Учитывай рейтинг: если 4-5 звезд — поблагодари, если 3 — нейтрально-вежливый, если 1-2 — извинись и предложи решение. Ответ должен быть на русском языке, длиной не более 2 предложения. Никогда не используй символ —.';
-document.getElementById('maxPages').value = localStorage.getItem('max_pages') || '3';
+document.getElementById('maxPages').value = localStorage.getItem('max_pages') || '5';
 
 const savedSlowMode = localStorage.getItem('slow_mode');
 state.slowMode = savedSlowMode !== 'false'; // Default to true if not set
@@ -944,7 +945,7 @@ state.productDescriptions = {};
 
 const limit = 100;
 const sortDir = document.getElementById('sortDate').value === 'asc' ? 'ASC' : 'DESC';
-const maxPages = parseInt(document.getElementById('maxPages').value) || 3;
+const maxPages = parseInt(document.getElementById('maxPages').value) || 5;
 
 try {
 let page = 0;
@@ -979,7 +980,6 @@ addLog('response', `Получено отзывов: ${reviewsList.length}`, { h
 
 if (reviewsList.length === 0) break;
 
-let newCount = 0;
 reviewsList.forEach(r => {
 if (!state.reviews.find(existing => existing.id === r.id)) {
 state.reviews.push({
@@ -995,7 +995,6 @@ videos_amount: r.videos_amount || 0,
 photos: [],
 videos: []
 });
-newCount++;
 }
 });
 
@@ -1012,6 +1011,7 @@ await new Promise(resolve => setTimeout(resolve, 500));
 if (!data.has_next) break;
 }
 
+// Render ALL reviews
 applyFiltersSafe();
 showToast(`Загружено ${state.reviews.length} отзывов`, 'success');
 addLog('info', 'Загрузка отзывов завершена', { total: state.reviews.length });
@@ -1047,12 +1047,14 @@ const statusFilter = document.getElementById('filterStatus')?.value || 'ALL';
 
 let filtered = [...state.reviews];
 
+// 1. Filter by Status (Fix 3)
 if (statusFilter !== 'ALL') {
 filtered = filtered.filter(r => r.status === statusFilter);
 }
 
 if (skuSearch) filtered = filtered.filter(r => String(r.sku).toLowerCase().includes(skuSearch));
 
+// 2. Filter by Rating
 if (!state.selectedRatings.has('any') && state.selectedRatings.size > 0) {
 const ratingSet = new Set([...state.selectedRatings].map(r => Number(r)));
 filtered = filtered.filter(r => {
@@ -1061,15 +1063,18 @@ return ratingSet.has(reviewRating);
 });
 }
 
+// 3. Filter by Media
 if (mediaFilter === 'has') {
 filtered = filtered.filter(r => (r.photos_amount || 0) > 0 || (r.videos_amount || 0) > 0);
 } else if (mediaFilter === 'no') {
 filtered = filtered.filter(r => (r.photos_amount || 0) === 0 && (r.videos_amount || 0) === 0);
 }
 
+// 4. Filter by Text
 if (hasTextSort === 'has') filtered = filtered.filter(r => r.text && r.text.trim().length > 0);
 else if (hasTextSort === 'no') filtered = filtered.filter(r => !r.text || r.text.trim().length === 0);
 
+// 5. Sort by Date
 filtered.sort((a, b) => {
 const dateA = new Date(a.published_at).getTime() || 0;
 const dateB = new Date(b.published_at).getTime() || 0;
@@ -1137,6 +1142,7 @@ ${prod.description ? `<div class="product-desc">${prod.description}</div>` : ''}
 </div>
 ` : `<div class="product-sku">Ozon ID: ${r.sku}</div>`;
 
+// Fix Status Badge Logic
 let statusBadgeClass = 'badge-new';
 let statusText = 'Новый';
 if (r.status === 'VIEWED') { statusBadgeClass = 'badge-viewed'; statusText = 'Просмотрен'; }
@@ -1305,18 +1311,23 @@ showToast(`Ошибка: ${e.message}`, 'error');
 
 async function sendSingleResponseToOzon(review) {
 try {
+// If review has no text, just change status (Fix 2)
 if (!review.text || review.text.trim().length === 0) {
 addLog('info', `Отзыв ${review.id.substring(0, 8)} без текста. Изменяю статус на PROCESSED.`);
+// Delay to avoid 429 (Too Many Requests)
+await sleep(300); 
 await changeReviewStatus(review.id, 'PROCESSED');
 } else {
+// If review has text, send comment
 const requestBody = { review_id: review.id, text: review.response, mark_review_as_processed: true };
 const res = await fetch(getOzonUrl('/v1/review/comment/create'), { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(requestBody) });
 if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(`HTTP ${res.status}: ${e.message || e.code || res.statusText}`); }
 addLog('response', `Ответ отправлен`, await res.json());
+await sleep(300); // Delay after comment creation too
 await changeReviewStatus(review.id, 'PROCESSED');
 }
 review.status = 'PROCESSED';
-// Remove from state
+// Remove from state if processed
 state.reviews = state.reviews.filter(r => r.id !== review.id);
 } catch (e) {
 addLog('error', `Ошибка отправки ${review.id.substring(0,8)}`, e.message);
@@ -1325,6 +1336,8 @@ addLog('error', `Ошибка отправки ${review.id.substring(0,8)}`, e.m
 
 async function changeReviewStatus(reviewId, status) {
 try {
+// Delay before API call to mitigate 429 errors
+await sleep(200);
 const res = await fetch(getOzonUrl('/v1/review/change-status'), {
 method: 'POST',
 headers: getAuthHeaders(),
@@ -1555,7 +1568,6 @@ if (textarea) { textarea.value = response; textarea.classList.add('gemini-filled
 if (state.slowMode) {
 addLog('info', `Slow Mode: Авто-отправка ${review.id.substring(0, 8)}...`);
 await sendSingleResponseToOzon(review);
-// Refresh table
 renderReviewsTable();
 }
 
