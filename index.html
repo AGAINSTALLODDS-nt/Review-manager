@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.12</title>
+    <title>Ozon Reviews AI Manager v.0.13</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
@@ -137,7 +137,7 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.12
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.13
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
@@ -451,7 +451,7 @@
 </label>
 <div>
 <div class="text-sm font-medium text-blue-300">Slow Mode (Лимиты API)</div>
-<div class="text-[10px] text-slate-400">15 запросов/мин, 500/день. Авто-отправка на Ozon после генерации.</div>
+<div class="text-[10px] text-slate-400">15 запросов/мин, 500/день. Отправка только вручную кнопкой «Отправить».</div>
 </div>
 </div>
 <div class="text-[10px] text-slate-500 mt-1">
@@ -550,6 +550,7 @@
 <div class="modal-content">
 <h3 class="text-lg font-semibold mb-4 flex items-center"><i class="ph ph-sparkle mr-2 text-purple-400"></i>Генерация ответов с AI</h3>
 <p class="text-sm text-slate-400 mb-4">Выбрано: <span id="geminiCount" class="text-white font-medium">0</span> <span id="geminiType">отзывов</span></p>
+<p class="text-xs text-amber-400 mb-3"><i class="ph ph-info mr-1"></i>После генерации ответы появятся в таблице. Проверьте и отредактируйте их, затем нажмите «Отправить».</p>
 <div id="geminiProgress" class="hidden mb-4">
 <div class="flex justify-between text-xs mb-1">
 <span id="geminiProgressText">Генерация...</span>
@@ -615,7 +616,7 @@ closeRatingDropdown();
 window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); }, true);
 window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.12 - Product Info & Filters' });
+addLog('info', 'Приложение запущено', { version: 'v.0.13 - Manual Send Only' });
 });
 
 function loadSettings() {
@@ -841,7 +842,7 @@ container.innerHTML = state.templates.map(t => `
 <span class="text-sm font-semibold text-slate-200">${t.name}</span>
 <div class="flex gap-1">
 <button onclick="editTemplate('${t.id}')" class="btn-sm action-btn">✏️</button>
-<button onclick="deleteTemplate('${t.id}')" class="btn-sm action-btn" style="border-color:#ef4444;color:#f87171">🗑️</button>
+<button onclick="deleteTemplate('${t.id}')" class="btn-sm action-btn" style="border-color:#ef4444;color:#f87171">️</button>
 </div>
 </div>
 <div class="text-xs text-slate-400 bg-slate-800 rounded p-2 whitespace-pre-wrap">${t.text}</div>
@@ -928,7 +929,6 @@ if (template && item) { item.response = template.text; const textarea = document
 closeTemplateSelectModal(); showToast('Шаблон применён', 'success');
 }
 
-// Загрузка описаний товаров из localStorage
 function loadProductDescriptionsFromStorage() {
 try {
 const saved = localStorage.getItem('ozon_product_descriptions');
@@ -941,7 +941,6 @@ addLog('error', 'Ошибка загрузки описаний из localStorag
 }
 }
 
-// Сохранение описаний товаров в localStorage
 function saveProductDescriptionsToStorage() {
 try {
 localStorage.setItem('ozon_product_descriptions', JSON.stringify(state.productDescriptions));
@@ -1508,13 +1507,8 @@ if (state.slowMode) incrementDailyCounter();
 const textarea = document.querySelector(`textarea[data-id="${reviewId}"]`);
 if (textarea) { textarea.value = fullText; textarea.classList.add('gemini-filled'); }
 
-if (state.slowMode) {
-addLog('info', 'Slow Mode: Отправка ответа на Ozon...');
-await sendSingleResponseToOzon(review);
-}
-
-addLog('response', 'Ответ сгенерирован', { review_id: reviewId.substring(0, 8), text: fullText.substring(0, 100) });
-showToast('Ответ сгенерирован', 'success');
+addLog('response', 'Ответ сгенерирован (ожидает ручной отправки)', { review_id: reviewId.substring(0, 8), text: fullText.substring(0, 100) });
+showToast('Ответ сгенерирован. Проверьте и нажмите «Отправить»', 'success');
 renderReviewsTable();
 updateDailyCounterDisplay();
 } catch (e) {
@@ -1576,13 +1570,8 @@ if (state.slowMode) incrementDailyCounter();
 const textarea = document.querySelector(`textarea[data-id="${questionId}"]`);
 if (textarea) { textarea.value = fullText; textarea.classList.add('gemini-filled'); }
 
-if (state.slowMode) {
-addLog('info', 'Slow Mode: Отправка ответа на вопрос...');
-await sendSingleQuestionAnswer(question);
-}
-
-addLog('response', 'Ответ на вопрос сгенерирован', { question_id: questionId.substring(0, 8), text: fullText.substring(0, 100) });
-showToast('Ответ на вопрос сгенерирован', 'success');
+addLog('response', 'Ответ на вопрос сгенерирован (ожидает ручной отправки)', { question_id: questionId.substring(0, 8), text: fullText.substring(0, 100) });
+showToast('Ответ сгенерирован. Проверьте и нажмите «Отправить»', 'success');
 renderQuestionsTable();
 updateDailyCounterDisplay();
 } catch (e) {
@@ -2097,17 +2086,6 @@ if (state.slowMode) incrementDailyCounter();
 const textarea = document.querySelector(`textarea[data-id="${item.id}"]`);
 if (textarea) { textarea.value = response; textarea.classList.add('gemini-filled'); }
 
-if (state.slowMode) {
-addLog('info', `Slow Mode: Авто-отправка ${item.id.substring(0, 8)}...`);
-if (isReviews) {
-await sendSingleResponseToOzon(item);
-renderReviewsTable();
-} else {
-await sendSingleQuestionAnswer(item);
-renderQuestionsTable();
-}
-}
-
 if (state.slowMode && i < itemsToProcess.length - 1) {
 updateGeminiProgress(completed + errors, itemsToProcess.length, `Ожидание лимита (5с)...`);
 await sleep(5500);
@@ -2120,11 +2098,9 @@ updateGeminiProgress(completed, itemsToProcess.length, 'Готово!');
 document.getElementById('btnStartGemini').innerHTML = '<i class="ph ph-check mr-2"></i> Завершено';
 setTimeout(() => {
 closeGeminiModal();
-if (!state.slowMode) {
 if (isReviews) renderReviewsTable(); else renderQuestionsTable();
-}
-showToast(`Сгенерировано: ${completed}, Ошибок: ${errors}`, completed > 0 ? 'success' : 'error');
-addLog('info', 'Генерация завершена', { completed, errors });
+showToast(`Сгенерировано: ${completed}, Ошибок: ${errors}. Проверьте ответы и нажмите «Отправить»`, completed > 0 ? 'success' : 'error');
+addLog('info', 'Генерация завершена (ожидает ручной отправки)', { completed, errors });
 updateDailyCounterDisplay();
 }, 1000);
 }
@@ -2286,4 +2262,3 @@ addLog('response', 'Список моделей обновлен', supportedMode
 </script>
 </body>
 </html>
-
