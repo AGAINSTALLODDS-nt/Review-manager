@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.10</title>
+    <title>Ozon Reviews AI Manager v.0.11</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
@@ -29,28 +29,9 @@
         .btn-sm { padding: 4px 8px; font-size: 0.7rem; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
-        .table-wrapper { 
-            overflow-x: auto; 
-            max-height: 70vh; 
-            position: relative; 
-            overflow-y: auto; 
-        }
-        table { 
-            border-collapse: collapse; 
-            width: 100%; 
-            table-layout: fixed; 
-        }
-        th { 
-            background: #1e293b; 
-            position: sticky; 
-            top: 0; 
-            z-index: 50;
-            user-select: none; 
-            white-space: nowrap; 
-            padding: 12px 8px; 
-            border-bottom: 2px solid #334155; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
+        .table-wrapper { overflow-x: auto; max-height: 70vh; position: relative; overflow-y: auto; }
+        table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+        th { background: #1e293b; position: sticky; top: 0; z-index: 50; user-select: none; white-space: nowrap; padding: 12px 8px; border-bottom: 2px solid #334155; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
         th .resize-handle { position: absolute; right: 0; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 20; }
         th .resize-handle:hover { background: rgba(59, 130, 246, 0.5); }
 
@@ -61,6 +42,7 @@
         .badge-new { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
         .badge-viewed { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
         .badge-processed { background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .badge-unprocessed { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
 
         .review-text { max-height: 120px; overflow-y: auto; line-height: 1.5; font-size: 0.85rem; }
         .product-info-cell { font-size: 0.8rem; line-height: 1.4; }
@@ -107,7 +89,6 @@
         .log-type.response { background: rgba(34, 197, 94, 0.2); color: #86efac; }
         .log-type.error { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
         .log-type.info { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
-        .log-detail { color: #cbd5e1; margin-top: 4px; white-space: pre-wrap; word-break: break-all; }
         .json-viewer { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 12px; margin-top: 8px; font-family: monospace; font-size: 0.75rem; max-height: 300px; overflow: auto; }
         .action-btns { display: flex; gap: 4px; margin-top: 4px; }
         .action-btn { padding: 3px 6px; border-radius: 4px; font-size: 0.65rem; border: 1px solid #475569; cursor: pointer; transition: all 0.15s; background: rgba(30, 41, 59, 0.8); }
@@ -118,6 +99,8 @@
         .action-btn.template:hover { background: rgba(245, 158, 11, 0.2); }
         .action-btn.save { border-color: #10b981; color: #34d399; }
         .action-btn.save:hover { background: rgba(16, 185, 129, 0.2); }
+        .action-btn.send { border-color: #3b82f6; color: #93c5fd; }
+        .action-btn.send:hover { background: rgba(59, 130, 246, 0.2); }
         .loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 17, 32, 0.8); display: flex; align-items: center; justify-content: center; z-index: 5; backdrop-filter: blur(2px); }
         .error-banner { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; padding: 12px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
 
@@ -134,23 +117,17 @@
         .multi-select-option.selected .check-icon { background: #fbbf24; border-color: #fbbf24; color: #0b1120; }
         .multi-select-divider { height: 1px; background: #334155; margin: 4px 0; }
 
-        .media-cell { display: flex; align-items: center; justify-content: center; height: 100%; min-height: 50px; }
-        .media-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: all 0.15s; font-size: 0.85rem; font-weight: 600; border: 1px solid #334155; background: rgba(30, 41, 59, 0.8); color: #cbd5e1; }
-        .media-btn:hover { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: #93c5fd; }
-        .media-btn.has-media { border-color: #f59e0b; color: #fbbf24; }
-        .media-btn.has-media:hover { background: rgba(245, 158, 11, 0.2); }
-        .media-no { color: #475569; font-size: 0.8rem; }
-        .media-icon { font-size: 1.2rem; }
-        .media-viewer-img { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
-        .media-viewer-img:hover { transform: scale(1.02); }
-        .media-viewer-video { width: 100%; border-radius: 8px; max-height: 400px; background: #000; }
-
         .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 20px; }
         .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: #3b82f6; }
         input:checked + .slider:before { transform: translateX(20px); }
+
+        .question-link { color: #60a5fa; text-decoration: underline; font-size: 0.75rem; }
+        .question-link:hover { color: #93c5fd; }
+        .author-name { color: #cbd5e1; font-size: 0.8rem; font-weight: 500; }
+        .answers-count { color: #94a3b8; font-size: 0.75rem; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -158,9 +135,9 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.10
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.11
 </h1>
-<p class="text-slate-400 text-sm mt-1">Управление отзывами с AI-генерацией ответов</p>
+<p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
 <div class="flex gap-2 flex-wrap items-center">
 <button onclick="switchTab('settings')" class="btn px-4 py-2 glass rounded-lg text-sm flex items-center hover:bg-slate-700 transition">
@@ -217,11 +194,13 @@
 </div>
 
 <div class="flex gap-4 mb-4 border-b border-slate-700 pb-2">
-<div class="tab-btn active" onclick="switchTab('reviews')">📋 Отзывы</div>
+<div class="tab-btn active" onclick="switchTab('reviews')" id="tabBtnReviews"> Отзывы</div>
+<div class="tab-btn" onclick="switchTab('questions')" id="tabBtnQuestions">❓ Вопросы</div>
 <div class="flex-1"></div>
 <span id="statsDisplay" class="text-xs text-slate-400 flex items-center">Загружено: 0 | Выбрано: 0</span>
 </div>
 
+<!-- TAB REVIEWS -->
 <div id="tabReviews" class="fade-in">
 <div id="errorBanner" class="hidden error-banner">
 <span id="errorText">Ошибка загрузки</span>
@@ -245,14 +224,6 @@
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Ozon ID:</label>
 <input type="text" id="searchSku" placeholder="Поиск" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-28" oninput="applyFilters()">
-</div>
-<div class="flex items-center gap-2">
-<label class="text-xs text-slate-400">Медиа:</label>
-<select id="filterMedia" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-32" onchange="applyFilters()">
-<option value="all">Все</option>
-<option value="has">С медиа</option>
-<option value="no">Без медиа</option>
-</select>
 </div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Оценка:</label>
@@ -302,8 +273,8 @@
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Дата:</label>
 <select id="sortDate" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-32" onchange="applyFilters()">
-<option value="desc"> Новые</option>
-<option value="asc"> Старые</option>
+<option value="desc">Новые</option>
+<option value="asc">Старые</option>
 </select>
 </div>
 <button onclick="applyFilters()" class="text-xs text-blue-400 hover:text-blue-300"><i class="ph ph-funnel"></i> Применить</button>
@@ -312,7 +283,7 @@
 <div class="table-wrapper glass rounded-lg relative">
 <div id="tableLoading" class="loading-overlay hidden">
 <div class="text-center">
-<div class="loading-spinner w-8 h-8 border-2 border-blue-500 mx-auto mb-2"></div>
+<div class="spinner w-8 h-8 border-2 border-blue-500 border-t-transparent mx-auto mb-2"></div>
 <div class="text-sm text-slate-300">Загрузка отзывов...</div>
 </div>
 </div>
@@ -323,16 +294,13 @@
 <th style="width: 70px;">Дата</th>
 <th style="width: 60px;">Ozon ID</th>
 <th style="width: 45px;">Оценка</th>
-<th style="width: 80px;">Фото товара</th>
-<th style="width: 250px;">Товар</th>
-<th style="width: 80px;">Медиа</th>
 <th style="width: 100px;">Статус</th>
 <th style="width: 250px;">Текст отзыва</th>
 <th style="width: 350px;">Ответ</th>
 </tr>
 </thead>
 <tbody id="reviewsBody">
-<tr><td colspan="10" class="text-center text-slate-500 py-10">Нажмите «Загрузить отзывы» для начала</td></tr>
+<tr><td colspan="7" class="text-center text-slate-500 py-10">Нажмите «Загрузить отзывы» для начала</td></tr>
 </tbody>
 </table>
 </div>
@@ -343,6 +311,74 @@
 </div>
 </div>
 
+<!-- TAB QUESTIONS -->
+<div id="tabQuestions" class="hidden fade-in">
+<div id="errorBannerQuestions" class="hidden error-banner">
+<span id="errorTextQuestions">Ошибка загрузки</span>
+<button onclick="document.getElementById('errorBannerQuestions').classList.add('hidden')" class="text-xs underline hover:text-white">Скрыть</button>
+</div>
+
+<div class="glass rounded-lg p-3 mb-4 flex flex-wrap gap-3 items-center">
+<button onclick="fetchQuestions()" id="btnFetchQuestions" class="btn btn-primary px-4 py-2 rounded-lg text-white text-sm font-medium flex items-center">
+<i class="ph ph-arrow-clockwise mr-2"></i> Загрузить вопросы
+</button>
+<div class="flex-1"></div>
+<div class="flex items-center gap-2">
+<label class="text-xs text-slate-400">Статус:</label>
+<select id="filterQuestionStatus" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none" onchange="applyQuestionFilters()">
+<option value="ALL" selected>Все</option>
+<option value="NEW">Новые</option>
+<option value="VIEWED">Просмотренные</option>
+<option value="PROCESSED">Обработанные</option>
+<option value="UNPROCESSED">Необработанные</option>
+</select>
+</div>
+<div class="flex items-center gap-2">
+<label class="text-xs text-slate-400">Ozon ID:</label>
+<input type="text" id="searchQuestionSku" placeholder="Поиск" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-28" oninput="applyQuestionFilters()">
+</div>
+<div class="flex items-center gap-2">
+<label class="text-xs text-slate-400">Дата:</label>
+<select id="sortQuestionDate" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-32" onchange="applyQuestionFilters()">
+<option value="desc">Новые</option>
+<option value="asc">Старые</option>
+</select>
+</div>
+<button onclick="applyQuestionFilters()" class="text-xs text-blue-400 hover:text-blue-300"><i class="ph ph-funnel"></i> Применить</button>
+</div>
+
+<div class="table-wrapper glass rounded-lg relative">
+<div id="tableLoadingQuestions" class="loading-overlay hidden">
+<div class="text-center">
+<div class="spinner w-8 h-8 border-2 border-blue-500 border-t-transparent mx-auto mb-2"></div>
+<div class="text-sm text-slate-300">Загрузка вопросов...</div>
+</div>
+</div>
+<table id="questionsTable">
+<thead>
+<tr id="questionsHead">
+<th style="width: 40px;"><input type="checkbox" id="selectAllQuestions" class="checkbox-custom" onchange="toggleSelectAllQuestions(this.checked)"></th>
+<th style="width: 70px;">Дата</th>
+<th style="width: 60px;">Ozon ID</th>
+<th style="width: 100px;">Автор</th>
+<th style="width: 100px;">Статус</th>
+<th style="width: 250px;">Текст вопроса</th>
+<th style="width: 350px;">Ответ</th>
+</tr>
+</thead>
+<tbody id="questionsBody">
+<tr><td colspan="7" class="text-center text-slate-500 py-10">Нажмите «Загрузить вопросы» для начала</td></tr>
+</tbody>
+</table>
+</div>
+<div class="flex justify-center mt-4">
+<button onclick="fetchQuestions(true)" id="btnLoadMoreQuestions" class="btn px-4 py-2 glass rounded-lg text-sm hidden hover:bg-slate-700/80">
+<i class="ph ph-arrow-down mr-2"></i> Загрузить ещё
+</button>
+</div>
+</div>
+
+<!-- TAB TEMPLATES -->
 <div id="tabTemplates" class="hidden fade-in">
 <div class="glass rounded-lg p-5 mb-4">
 <h3 class="font-semibold text-lg mb-3 flex items-center"><i class="ph ph-files mr-2"></i>Шаблоны ответов</h3>
@@ -361,6 +397,7 @@
 </div>
 </div>
 
+<!-- TAB SETTINGS -->
 <div id="tabSettings" class="hidden fade-in">
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 <div class="glass rounded-xl p-5">
@@ -414,8 +451,12 @@
 </div>
 </div>
 <div>
-<label class="text-xs text-slate-400 block mb-1">Промпт</label>
+<label class="text-xs text-slate-400 block mb-1">Промпт для отзывов</label>
 <textarea id="geminiPromptTemplate" class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты — помощник продавца на Ozon. Напиши вежливый, профессиональный ответ на отзыв покупателя, всегда старайся разобраться в ситуации. Всегда упоминай товар конкретный товар в тексте отзыва, чтобы улучшать SEO карточки. Учитывай рейтинг: если 4-5 звезд — поблагодари, если 3 — нейтрально-вежливый, если 1-2 — извинись и предложи решение. Ответ должен быть на русском языке, длиной не более 2 предложения. Никогда не используй символ —.</textarea>
+</div>
+<div>
+<label class="text-xs text-slate-400 block mb-1">Промпт для вопросов</label>
+<textarea id="geminiPromptQuestions" class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты — помощник продавца на Ozon. Ответь на вопрос покупателя о товаре вежливо, профессионально и информативно. Всегда упоминай конкретный товар. Ответ должен быть на русском языке, длиной не более 2-3 предложений. Никогда не используй символ —. Если вопрос о характеристиках, размере, цвете — дай точный ответ.</textarea>
 </div>
 <div class="pt-2 flex gap-2">
 <button onclick="testGeminiConnection()" class="btn btn-gemini px-4 py-2 rounded text-white text-sm">
@@ -456,6 +497,7 @@
 </div>
 </div>
 
+<!-- Template Modal -->
 <div id="templateModal" class="hidden modal-overlay">
 <div class="modal-content">
 <h3 class="text-lg font-semibold mb-4 flex items-center" id="templateModalTitle"><i class="ph ph-files mr-2 text-purple-400"></i>Шаблон ответа</h3>
@@ -478,6 +520,7 @@
 </div>
 </div>
 
+<!-- Template Selection Modal -->
 <div id="templateSelectModal" class="hidden modal-overlay">
 <div class="modal-content">
 <h3 class="text-lg font-semibold mb-4 flex items-center"><i class="ph ph-files mr-2 text-yellow-400"></i>Выберите шаблон</h3>
@@ -488,20 +531,11 @@
 </div>
 </div>
 
-<div id="mediaModal" class="hidden modal-overlay">
-<div class="modal-content">
-<div class="flex justify-between items-center mb-4">
-<h3 class="text-lg font-semibold flex items-center"><i class="ph ph-camera mr-2"></i>Медиа отзыва</h3>
-<button onclick="closeMediaModal()" class="text-slate-400 hover:text-white transition"><i class="ph ph-x text-2xl"></i></button>
-</div>
-<div id="mediaContent" class="space-y-4 min-h-[100px]"></div>
-</div>
-</div>
-
+<!-- AI Generation Modal -->
 <div id="geminiModal" class="hidden modal-overlay">
 <div class="modal-content">
 <h3 class="text-lg font-semibold mb-4 flex items-center"><i class="ph ph-sparkle mr-2 text-purple-400"></i>Генерация ответов с AI</h3>
-<p class="text-sm text-slate-400 mb-4">Выбрано отзывов: <span id="geminiCount" class="text-white font-medium">0</span></p>
+<p class="text-sm text-slate-400 mb-4">Выбрано: <span id="geminiCount" class="text-white font-medium">0</span> <span id="geminiType">отзывов</span></p>
 <div id="geminiProgress" class="hidden mb-4">
 <div class="flex justify-between text-xs mb-1">
 <span id="geminiProgressText">Генерация...</span>
@@ -522,11 +556,16 @@
 <script>
 let state = {
 reviews: [],
+questions: [],
 productDescriptions: {},
 filteredReviews: [],
+filteredQuestions: [],
 selectedIds: new Set(),
+selectedQuestionIds: new Set(),
 lastReviewId: null,
+lastQuestionId: null,
 hasNextPage: false,
+hasNextQuestionPage: false,
 isLoading: false,
 logs: [],
 selectedRatings: new Set(['any']),
@@ -535,7 +574,8 @@ currentTemplateEditId: null,
 currentTemplateReviewId: null,
 ratingDropdownOpen: false,
 slowMode: true,
-isSendingCancelled: false
+isSendingCancelled: false,
+currentTab: 'reviews'
 };
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -544,6 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
 loadSettings();
 loadTemplates();
 initResizableTable('reviewsHead');
+initResizableTable('questionsHead');
 updateStats();
 renderLog();
 renderTemplatesList();
@@ -559,7 +600,7 @@ closeRatingDropdown();
 window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); }, true);
 window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.10 - Fix empty review status' });
+addLog('info', 'Приложение запущено', { version: 'v.0.11 - Reviews + Questions' });
 });
 
 function loadSettings() {
@@ -570,6 +611,7 @@ document.getElementById('geminiModel').value = localStorage.getItem('gemini_mode
 document.getElementById('ozonCorsProxy').value = localStorage.getItem('ozon_corsProxy') || '';
 document.getElementById('geminiMaxTokens').value = localStorage.getItem('gemini_max_tokens') || '200';
 document.getElementById('geminiPromptTemplate').value = localStorage.getItem('gemini_prompt') || 'Ты — помощник продавца на Ozon. Напиши вежливый, профессиональный ответ на отзыв покупателя, всегда старайся разобраться в ситуации. Всегда упоминай товар конкретный товар в тексте отзыва, чтобы улучшать SEO карточки. Учитывай рейтинг: если 4-5 звезд — поблагодари, если 3 — нейтрально-вежливый, если 1-2 — извинись и предложи решение. Ответ должен быть на русском языке, длиной не более 2 предложения. Никогда не используй символ —.';
+document.getElementById('geminiPromptQuestions').value = localStorage.getItem('gemini_prompt_questions') || 'Ты — помощник продавца на Ozon. Ответь на вопрос покупателя о товаре вежливо, профессионально и информативно. Всегда упоминай конкретный товар. Ответ должен быть на русском языке, длиной не более 2-3 предложений. Никогда не используй символ —.';
 document.getElementById('maxPages').value = localStorage.getItem('max_pages') || '5';
 
 const savedSlowMode = localStorage.getItem('slow_mode');
@@ -586,6 +628,7 @@ localStorage.setItem('gemini_model', document.getElementById('geminiModel').valu
 localStorage.setItem('ozon_corsProxy', document.getElementById('ozonCorsProxy').value.trim());
 localStorage.setItem('gemini_max_tokens', document.getElementById('geminiMaxTokens').value.trim());
 localStorage.setItem('gemini_prompt', document.getElementById('geminiPromptTemplate').value.trim());
+localStorage.setItem('gemini_prompt_questions', document.getElementById('geminiPromptQuestions').value.trim());
 localStorage.setItem('max_pages', document.getElementById('maxPages').value.trim());
 localStorage.setItem('slow_mode', state.slowMode.toString());
 
@@ -605,14 +648,30 @@ btn.innerHTML = '<i class="ph ph-sparkle mr-2"></i> AI (Fast)';
 }
 
 function switchTab(tab) {
+state.currentTab = tab;
 document.getElementById('tabReviews').classList.toggle('hidden', tab !== 'reviews');
+document.getElementById('tabQuestions').classList.toggle('hidden', tab !== 'questions');
 document.getElementById('tabSettings').classList.toggle('hidden', tab !== 'settings');
 document.getElementById('tabTemplates').classList.toggle('hidden', tab !== 'templates');
-document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().includes(
-tab === 'reviews' ? 'отзывы' : 'настройки'
-)));
+
+document.getElementById('tabBtnReviews').classList.toggle('active', tab === 'reviews');
+document.getElementById('tabBtnQuestions').classList.toggle('active', tab === 'questions');
+
 if (tab === 'settings') renderLog();
 if (tab === 'templates') renderTemplatesList();
+updateStats();
+updateFetchButton();
+}
+
+function updateFetchButton() {
+const btnFetch = document.getElementById('btnFetch');
+if (state.currentTab === 'reviews') {
+btnFetch.innerHTML = '<i class="ph ph-arrow-clockwise mr-2"></i> Загрузить отзывы';
+btnFetch.onclick = () => fetchReviews();
+} else if (state.currentTab === 'questions') {
+btnFetch.innerHTML = '<i class="ph ph-arrow-clockwise mr-2"></i> Загрузить вопросы';
+btnFetch.onclick = () => fetchQuestions();
+}
 }
 
 function getOzonUrl(path) {
@@ -640,13 +699,28 @@ document.getElementById('progressText').textContent = `${p} / ${t}`;
 document.getElementById('progressDetail').textContent = d;
 }
 function hideProgress() { document.getElementById('progressContainer').classList.add('hidden'); }
+
 function updateStats() {
-document.getElementById('statsDisplay').textContent = `Загружено: ${state.reviews.length} | В таблице: ${state.filteredReviews.length} | Выбрано: ${state.selectedIds.size}`;
-document.getElementById('btnExport').disabled = state.filteredReviews.length === 0;
-document.getElementById('btnImport').disabled = state.filteredReviews.length === 0;
-document.getElementById('btnSend').disabled = state.selectedIds.size === 0;
-document.getElementById('btnAI').disabled = state.selectedIds.size === 0 || !localStorage.getItem('gemini_apiKey');
-document.getElementById('btnSaveCurrentAsTemplate').disabled = state.selectedIds.size === 0;
+let loaded, selected, inTable;
+if (state.currentTab === 'reviews') {
+loaded = state.reviews.length;
+selected = state.selectedIds.size;
+inTable = state.filteredReviews.length;
+} else if (state.currentTab === 'questions') {
+loaded = state.questions.length;
+selected = state.selectedQuestionIds.size;
+inTable = state.filteredQuestions.length;
+} else {
+loaded = state.reviews.length + state.questions.length;
+selected = state.selectedIds.size + state.selectedQuestionIds.size;
+inTable = state.filteredReviews.length + state.filteredQuestions.length;
+}
+document.getElementById('statsDisplay').textContent = `Загружено: ${loaded} | В таблице: ${inTable} | Выбрано: ${selected}`;
+document.getElementById('btnExport').disabled = inTable === 0;
+document.getElementById('btnImport').disabled = inTable === 0;
+document.getElementById('btnSend').disabled = selected === 0;
+document.getElementById('btnAI').disabled = selected === 0 || !localStorage.getItem('gemini_apiKey');
+document.getElementById('btnSaveCurrentAsTemplate').disabled = selected === 0;
 }
 
 function addLog(type, message, detail = null) {
@@ -763,8 +837,8 @@ container.innerHTML = state.templates.map(t => `
 <div class="flex items-center justify-between mb-2">
 <span class="text-sm font-semibold text-slate-200">${t.name}</span>
 <div class="flex gap-1">
-<button onclick="editTemplate('${t.id}')" class="btn-sm action-btn">️</button>
-<button onclick="deleteTemplate('${t.id}')" class="btn-sm action-btn" style="border-color:#ef4444;color:#f87171">️</button>
+<button onclick="editTemplate('${t.id}')" class="btn-sm action-btn">✏️</button>
+<button onclick="deleteTemplate('${t.id}')" class="btn-sm action-btn" style="border-color:#ef4444;color:#f87171">🗑️</button>
 </div>
 </div>
 <div class="text-xs text-slate-400 bg-slate-800 rounded p-2 whitespace-pre-wrap">${t.text}</div>
@@ -781,8 +855,13 @@ document.getElementById('templateModal').classList.remove('hidden');
 }
 
 function showSaveCurrentAsTemplateModal() {
-const selected = state.reviews.filter(r => state.selectedIds.has(r.id));
-if (selected.length === 0) { showToast('Выберите отзыв с ответом', 'error'); return; }
+let selected;
+if (state.currentTab === 'reviews') {
+selected = state.reviews.filter(r => state.selectedIds.has(r.id));
+} else {
+selected = state.questions.filter(q => state.selectedQuestionIds.has(q.id));
+}
+if (selected.length === 0) { showToast('Выберите элемент с ответом', 'error'); return; }
 state.currentTemplateReviewId = selected[0].id; state.currentTemplateEditId = null;
 document.getElementById('templateModalTitle').innerHTML = '<i class="ph ph-floppy-disk mr-2 text-yellow-400"></i>Сохранить ответ как шаблон';
 document.getElementById('templateName').value = `Шаблон от ${new Date().toLocaleDateString('ru-RU')}`;
@@ -818,14 +897,14 @@ saveTemplatesToStorage(); closeTemplateModal(); renderTemplatesList(); showToast
 function closeTemplateModal() { document.getElementById('templateModal').classList.add('hidden'); }
 function closeTemplateSelectModal() { document.getElementById('templateSelectModal').classList.add('hidden'); }
 
-function showTemplateSelectForReview(reviewId) {
-state.currentTemplateReviewId = reviewId;
+function showTemplateSelectForItem(itemId) {
+state.currentTemplateReviewId = itemId;
 const container = document.getElementById('templateSelectList');
 if (state.templates.length === 0) {
 container.innerHTML = '<div class="text-center text-slate-500 py-4">Нет шаблонов. <a href="#" onclick="closeTemplateSelectModal();showCreateTemplateModal();return false;" class="text-purple-400 underline">Создать шаблон</a></div>';
 } else {
 container.innerHTML = state.templates.map(t => `
-<div class="template-card cursor-pointer" onclick="applyTemplateToReview('${reviewId}', '${t.id}')">
+<div class="template-card cursor-pointer" onclick="applyTemplateToItem('${itemId}', '${t.id}')">
 <div class="text-sm font-semibold text-slate-200">${t.name}</div>
 <div class="text-xs text-slate-400 mt-1">${t.text.substring(0, 80)}${t.text.length > 80 ? '...' : ''}</div>
 </div>
@@ -834,10 +913,15 @@ container.innerHTML = state.templates.map(t => `
 document.getElementById('templateSelectModal').classList.remove('hidden');
 }
 
-function applyTemplateToReview(reviewId, templateId) {
+function applyTemplateToItem(itemId, templateId) {
 const template = state.templates.find(t => t.id === templateId);
-const review = state.reviews.find(r => r.id === reviewId);
-if (template && review) { review.response = template.text; const textarea = document.querySelector(`textarea[data-id="${reviewId}"]`); if (textarea) textarea.value = template.text; }
+let item;
+if (state.currentTab === 'reviews') {
+item = state.reviews.find(r => r.id === itemId);
+} else {
+item = state.questions.find(q => q.id === itemId);
+}
+if (template && item) { item.response = template.text; const textarea = document.querySelector(`textarea[data-id="${itemId}"]`); if (textarea) textarea.value = template.text; }
 closeTemplateSelectModal(); showToast('Шаблон применён', 'success');
 }
 
@@ -917,7 +1001,6 @@ const apiKey = document.getElementById('ozonApiKey').value;
 
 if (!clientId || !apiKey) {
 showToast('Укажите Client-ID и API-Key в настройках', 'error');
-showBannerError('Не указаны API ключи. Перейдите в настройки и заполните поля Client-ID и API-Key.');
 return;
 }
 
@@ -1007,7 +1090,6 @@ fetchProductDescriptionsForReviews().catch(e => addLog('error', 'Ошибка з
 
 } catch (e) {
 addLog('error', 'Ошибка загрузки отзывов', e.message);
-showBannerError(`Ошибка загрузки: ${e.message}`);
 showToast(`Ошибка: ${e.message}`, 'error');
 applyFiltersSafe();
 } finally {
@@ -1018,10 +1100,105 @@ updateStats();
 }
 }
 
-function showBannerError(msg) {
-const banner = document.getElementById('errorBanner');
-document.getElementById('errorText').textContent = msg;
-banner.classList.remove('hidden');
+async function fetchQuestions(append = false) {
+const clientId = document.getElementById('ozonClientId').value;
+const apiKey = document.getElementById('ozonApiKey').value;
+
+if (!clientId || !apiKey) {
+showToast('Укажите Client-ID и API-Key в настройках', 'error');
+return;
+}
+
+document.getElementById('tableLoadingQuestions').classList.remove('hidden');
+document.getElementById('errorBannerQuestions').classList.add('hidden');
+
+if (!append) {
+state.questions = [];
+state.lastQuestionId = null;
+state.selectedQuestionIds.clear();
+}
+
+const limit = 100;
+const sortDir = document.getElementById('sortQuestionDate').value === 'asc' ? 'ASC' : 'DESC';
+const maxPages = parseInt(document.getElementById('maxPages').value) || 5;
+
+try {
+let page = 0;
+
+while (page < maxPages) {
+const requestBody = {
+limit: limit,
+sort_dir: sortDir,
+filter: {}
+};
+
+if (state.lastQuestionId && state.lastQuestionId.trim() !== '') {
+requestBody.last_id = state.lastQuestionId;
+}
+
+addLog('request', `Загрузка вопросов (стр ${page + 1})`, { url: '/v1/question/list', body: requestBody });
+
+const res = await fetch(getOzonUrl('/v1/question/list'), {
+method: 'POST',
+headers: getAuthHeaders(),
+body: JSON.stringify(requestBody)
+});
+
+if (!res.ok) {
+const errorData = await res.json().catch(() => ({}));
+throw new Error(`HTTP ${res.status}: ${errorData.message || errorData.code || res.statusText}`);
+}
+
+const data = await res.json();
+const questionsList = data.questions || [];
+addLog('response', `Получено вопросов: ${questionsList.length}`, { has_next: data.has_next });
+
+if (questionsList.length === 0) break;
+
+questionsList.forEach(q => {
+if (!state.questions.find(existing => existing.id === q.id)) {
+state.questions.push({
+id: q.id,
+sku: q.sku,
+text: q.text || '',
+published_at: q.published_at,
+status: q.status || 'NEW',
+response: '',
+author_name: q.author_name || 'Аноним',
+answers_count: q.answers_count || 0,
+product_url: q.product_url || '',
+question_link: q.question_link || ''
+});
+}
+});
+
+state.lastQuestionId = data.last_id || null;
+state.hasNextQuestionPage = data.has_next;
+
+page++;
+updateProgress(page, maxPages, `Загружено ${state.questions.length} вопросов (${page}/${maxPages} стр.)`);
+
+if (page < maxPages && data.has_next) {
+await new Promise(resolve => setTimeout(resolve, 500));
+}
+
+if (!data.has_next) break;
+}
+
+applyQuestionFilters();
+showToast(`Загружено ${state.questions.length} вопросов`, 'success');
+addLog('info', 'Загрузка вопросов завершена', { total: state.questions.length });
+
+} catch (e) {
+addLog('error', 'Ошибка загрузки вопросов', e.message);
+showToast(`Ошибка: ${e.message}`, 'error');
+applyQuestionFilters();
+} finally {
+hideProgress();
+document.getElementById('tableLoadingQuestions').classList.add('hidden');
+document.getElementById('btnLoadMoreQuestions').classList.toggle('hidden', !state.hasNextQuestionPage);
+updateStats();
+}
 }
 
 function applyFiltersSafe() {
@@ -1029,7 +1206,6 @@ try {
 const skuSearch = document.getElementById('searchSku')?.value?.trim().toLowerCase() || '';
 const hasTextSort = document.getElementById('sortHasText')?.value || 'all';
 const dateSort = document.getElementById('sortDate')?.value || 'desc';
-const mediaFilter = document.getElementById('filterMedia')?.value || 'all';
 const statusFilter = document.getElementById('filterStatus')?.value || 'ALL';
 
 let filtered = [...state.reviews];
@@ -1046,12 +1222,6 @@ filtered = filtered.filter(r => {
 const reviewRating = Number(r.rating);
 return ratingSet.has(reviewRating);
 });
-}
-
-if (mediaFilter === 'has') {
-filtered = filtered.filter(r => (r.photos_amount || 0) > 0 || (r.videos_amount || 0) > 0);
-} else if (mediaFilter === 'no') {
-filtered = filtered.filter(r => (r.photos_amount || 0) === 0 && (r.videos_amount || 0) === 0);
 }
 
 if (hasTextSort === 'has') filtered = filtered.filter(r => r.text && r.text.trim().length > 0);
@@ -1078,11 +1248,42 @@ function applyFilters() {
 applyFiltersSafe();
 }
 
+function applyQuestionFilters() {
+try {
+const skuSearch = document.getElementById('searchQuestionSku')?.value?.trim().toLowerCase() || '';
+const dateSort = document.getElementById('sortQuestionDate')?.value || 'desc';
+const statusFilter = document.getElementById('filterQuestionStatus')?.value || 'ALL';
+
+let filtered = [...state.questions];
+
+if (statusFilter !== 'ALL') {
+filtered = filtered.filter(q => q.status === statusFilter);
+}
+
+if (skuSearch) filtered = filtered.filter(q => String(q.sku).toLowerCase().includes(skuSearch));
+
+filtered.sort((a, b) => {
+const dateA = new Date(a.published_at).getTime() || 0;
+const dateB = new Date(b.published_at).getTime() || 0;
+return dateSort === 'asc' ? dateA - dateB : dateB - dateA;
+});
+
+state.filteredQuestions = filtered;
+renderQuestionsTable();
+updateStats();
+} catch (e) {
+addLog('error', 'Ошибка фильтрации вопросов', e.message);
+state.filteredQuestions = [...state.questions];
+renderQuestionsTable();
+updateStats();
+}
+}
+
 function renderReviewsTable() {
 const tbody = document.getElementById('reviewsBody');
 tbody.innerHTML = '';
 if (state.filteredReviews.length === 0) {
-tbody.innerHTML = '<tr><td colspan="10" class="text-center text-slate-500 py-8">Нет отзывов по заданным фильтрам</td></tr>';
+tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-8">Нет отзывов по заданным фильтрам</td></tr>';
 return;
 }
 state.filteredReviews.forEach(r => {
@@ -1092,37 +1293,6 @@ const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
 const isFilled = r.response && r.response.length > 0;
 const taClass = `response-input ${isFilled ? 'gemini-filled' : ''}`;
 const hasResponse = r.response && r.response.trim().length > 0;
-
-const totalMedia = (r.photos_amount || 0) + (r.videos_amount || 0);
-
-const mediaHtml = totalMedia > 0
-? `<div class="media-cell">
-<button class="media-btn has-media" onclick="showReviewMedia('${r.id}')">
-<span class="media-icon">${(r.photos_amount || 0) > 0 ? '<i class="ph ph-camera"></i>' : ''}${(r.videos_amount || 0) > 0 ? '<i class="ph ph-video-camera"></i>' : ''}</span>
-<span>${totalMedia}</span>
-</button>
-</div>`
-: `<div class="media-cell"><span class="media-no">—</span></div>`;
-
-const prod = state.productDescriptions[r.sku];
-let photoHtml = '';
-if (prod && prod.primary_image) {
-photoHtml = `<div class="product-photo-cell">
-<img src="${prod.primary_image}" class="product-photo-img" alt="Product" loading="lazy">
-</div>`;
-} else {
-photoHtml = `<div class="product-photo-cell">
-<div class="product-photo-placeholder"><i class="ph ph-image"></i></div>
-</div>`;
-}
-
-const prodHtml = prod ? `
-<div class="product-info-cell">
-<div class="product-name">${prod.name}</div>
-${prod.description ? `<div class="product-desc">${prod.description}</div>` : ''}
-<div class="product-sku">Ozon ID: ${r.sku}${prod.offer_id ? ` | Артикул: ${prod.offer_id}` : ''}</div>
-</div>
-` : `<div class="product-sku">Ozon ID: ${r.sku}</div>`;
 
 let statusBadgeClass = 'badge-new';
 let statusText = 'Новый';
@@ -1134,17 +1304,14 @@ tr.innerHTML = `
 <td class="text-xs text-slate-400">${dateStr}</td>
 <td class="text-xs font-mono">${r.sku}</td>
 <td class="text-yellow-400 text-sm">${stars}</td>
-<td>${photoHtml}</td>
-<td>${prodHtml}</td>
-<td>${mediaHtml}</td>
 <td><span class="status-badge ${statusBadgeClass}">${statusText}</span></td>
 <td><div class="review-text text-slate-300">${r.text || '<span class="text-slate-500 italic">Без текста</span>'}</div></td>
 <td>
 <textarea class="${taClass}" data-id="${r.id}" placeholder="Введите ответ..." onchange="updateResponse('${r.id}', this.value)">${r.response || ''}</textarea>
 <div class="action-btns">
 <button class="action-btn ai" onclick="generateForReview('${r.id}')" title="Сгенерировать ответ AI"><i class="ph ph-sparkle"></i> AI</button>
-<button class="action-btn template" onclick="showTemplateSelectForReview('${r.id}')" title="Выбрать шаблон"><i class="ph ph-files"></i> Шаблон</button>
-${hasResponse ? `<button class="action-btn save" onclick="saveResponseAsTemplate('${r.id}')" title="Сохранить ответ как шаблон"><i class="ph ph-floppy-disk"></i></button>` : ''}
+<button class="action-btn template" onclick="showTemplateSelectForItem('${r.id}')" title="Выбрать шаблон"><i class="ph ph-files"></i> Шаблон</button>
+${hasResponse ? `<button class="action-btn send" onclick="sendSingleResponseToOzon(state.reviews.find(x=>x.id==='${r.id}'))" title="Отправить ответ"><i class="ph ph-paper-plane-right"></i> Отпр.</button>` : ''}
 </div>
 </td>
 `;
@@ -1152,72 +1319,46 @@ tbody.appendChild(tr);
 });
 }
 
-async function showReviewMedia(reviewId) {
-const review = state.reviews.find(r => r.id === reviewId);
-if (!review) return;
-
-document.getElementById('mediaModal').classList.remove('hidden');
-document.getElementById('mediaContent').innerHTML = '<div class="text-center py-8"><div class="spinner w-8 h-8 border-2 border-blue-500 mx-auto mb-2"></div><div class="text-sm text-slate-300">Загрузка медиа...</div></div>';
-
-if (review.photos.length === 0 && review.videos.length === 0) {
-try {
-const res = await fetch(getOzonUrl('/v2/review/info'), {
-method: 'POST',
-headers: getAuthHeaders(),
-body: JSON.stringify({ review_id: reviewId })
-});
-if (res.ok) {
-const data = await res.json();
-review.photos = data.photos || [];
-review.videos = data.videos || [];
-review.photos_amount = data.photos_amount || 0;
-review.videos_amount = data.videos_amount || 0;
-} else {
-throw new Error(`HTTP ${res.status}`);
-}
-} catch (e) {
-document.getElementById('mediaContent').innerHTML = `<div class="text-red-400 text-center py-8">Ошибка загрузки медиа: ${e.message}</div>`;
+function renderQuestionsTable() {
+const tbody = document.getElementById('questionsBody');
+tbody.innerHTML = '';
+if (state.filteredQuestions.length === 0) {
+tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-8">Нет вопросов по заданным фильтрам</td></tr>';
 return;
 }
-}
-renderMediaContent(review);
-}
+state.filteredQuestions.forEach(q => {
+const tr = document.createElement('tr');
+const dateStr = new Date(q.published_at).toLocaleDateString('ru-RU');
+const isFilled = q.response && q.response.length > 0;
+const taClass = `response-input ${isFilled ? 'gemini-filled' : ''}`;
+const hasResponse = q.response && q.response.trim().length > 0;
 
-function renderMediaContent(review) {
-const container = document.getElementById('mediaContent');
-let html = '';
+let statusBadgeClass = 'badge-new';
+let statusText = 'Новый';
+if (q.status === 'VIEWED') { statusBadgeClass = 'badge-viewed'; statusText = 'Просмотрен'; }
+else if (q.status === 'PROCESSED') { statusBadgeClass = 'badge-processed'; statusText = 'Обработан'; }
+else if (q.status === 'UNPROCESSED') { statusBadgeClass = 'badge-unprocessed'; statusText = 'Не обработан'; }
 
-if (review.photos.length > 0) {
-html += '<div><h4 class="text-sm font-semibold mb-3 text-slate-300 flex items-center gap-2"><i class="ph ph-camera"></i>Фотографии:</h4><div class="grid grid-cols-2 md:grid-cols-3 gap-3">';
-review.photos.forEach(p => {
-html += `<div class="relative group">
-<img src="${p.url}" class="media-viewer-img" onclick="window.open('${p.url}', '_blank')" title="Открыть оригинал">
-<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center rounded-8 pointer-events-none">
-<span class="text-white text-xs bg-black/60 px-2 py-1 rounded">Открыть</span>
+const linkHtml = q.question_link ? `<a href="${q.question_link}" target="_blank" class="question-link">Ссылка на вопрос</a>` : '';
+
+tr.innerHTML = `
+<td><input type="checkbox" class="checkbox-custom" ${state.selectedQuestionIds.has(q.id) ? 'checked' : ''} onchange="toggleSelectQuestion('${q.id}')"></td>
+<td class="text-xs text-slate-400">${dateStr}</td>
+<td class="text-xs font-mono">${q.sku}</td>
+<td><div class="author-name">${q.author_name}</div>${linkHtml}</td>
+<td><span class="status-badge ${statusBadgeClass}">${statusText}</span></td>
+<td><div class="review-text text-slate-300">${q.text || '<span class="text-slate-500 italic">Без текста</span>'}</div><div class="answers-count">Ответов: ${q.answers_count}</div></td>
+<td>
+<textarea class="${taClass}" data-id="${q.id}" placeholder="Введите ответ на вопрос..." onchange="updateQuestionResponse('${q.id}', this.value)">${q.response || ''}</textarea>
+<div class="action-btns">
+<button class="action-btn ai" onclick="generateForQuestion('${q.id}')" title="Сгенерировать ответ AI"><i class="ph ph-sparkle"></i> AI</button>
+<button class="action-btn template" onclick="showTemplateSelectForItem('${q.id}')" title="Выбрать шаблон"><i class="ph ph-files"></i> Шаблон</button>
+${hasResponse ? `<button class="action-btn send" onclick="sendSingleQuestionAnswer(state.questions.find(x=>x.id==='${q.id}'))" title="Отправить ответ"><i class="ph ph-paper-plane-right"></i> Отпр.</button>` : ''}
 </div>
-</div>`;
+</td>
+`;
+tbody.appendChild(tr);
 });
-html += '</div></div>';
-}
-
-if (review.videos.length > 0) {
-html += '<div class="mt-6"><h4 class="text-sm font-semibold mb-3 text-slate-300 flex items-center gap-2"><i class="ph ph-video-camera"></i>Видео:</h4>';
-review.videos.forEach(v => {
-html += `<video controls class="media-viewer-video" src="${v.url}"></video>`;
-});
-html += '</div>';
-}
-
-if (review.photos.length === 0 && review.videos.length === 0) {
-html = '<div class="text-center text-slate-500 py-8">Нет медиафайлов в этом отзыве</div>';
-}
-
-container.innerHTML = html;
-}
-
-function closeMediaModal() {
-document.getElementById('mediaModal').classList.add('hidden');
-document.getElementById('mediaContent').innerHTML = '';
 }
 
 async function generateForReview(reviewId) {
@@ -1260,7 +1401,7 @@ generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens, topP: 0.95, to
 };
 
 try {
-addLog('request', 'Генерация AI', { review_id: reviewId.substring(0, 8) });
+addLog('request', 'Генерация AI (отзыв)', { review_id: reviewId.substring(0, 8) });
 const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
 if (!response.ok) { const err = await response.json(); throw new Error(err.error?.message || 'Ошибка'); }
 const data = await response.json();
@@ -1289,50 +1430,115 @@ showToast(`Ошибка: ${e.message}`, 'error');
 }
 }
 
+async function generateForQuestion(questionId) {
+const apiKey = localStorage.getItem('gemini_apiKey');
+if (!apiKey) { showToast('Введите Gemini API Key', 'error'); return; }
+const question = state.questions.find(q => q.id === questionId);
+if (!question) return;
+
+if (state.slowMode) {
+if (!checkDailyLimit()) {
+showToast('Превышен дневной лимит 500 запросов', 'error');
+return;
+}
+}
+
+const model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash-latest';
+const promptTemplate = localStorage.getItem('gemini_prompt_questions') || 'Ты — помощник продавца на Ozon.';
+const maxTokens = parseInt(localStorage.getItem('gemini_max_tokens')) || 200;
+
+const prod = state.productDescriptions[question.sku];
+let productInfo = '';
+if (prod) {
+productInfo = `Товар: ${prod.name}
+Ozon ID: ${question.sku}
+${prod.description ? `Описание: ${prod.description.substring(0, 200)}
+` : ''}`;
+}
+
+const userPrompt = `${promptTemplate}
+${productInfo}
+Вопрос покупателя:
+${question.text || 'Без текста'}
+Напиши ответ:`;
+const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+const requestBody = {
+contents: [{ parts: [{ text: userPrompt }] }],
+generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens, topP: 0.95, topK: 40, responseMimeType: "text/plain" }
+};
+
+try {
+addLog('request', 'Генерация AI (вопрос)', { question_id: questionId.substring(0, 8) });
+const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
+if (!response.ok) { const err = await response.json(); throw new Error(err.error?.message || 'Ошибка'); }
+const data = await response.json();
+let fullText = '';
+if (data.candidates?.[0]?.content?.parts) fullText = data.candidates[0].content.parts.map(p => p.text).join('');
+fullText = fullText.trim() || 'Не удалось сгенерировать';
+
+question.response = fullText;
+if (state.slowMode) incrementDailyCounter();
+
+const textarea = document.querySelector(`textarea[data-id="${questionId}"]`);
+if (textarea) { textarea.value = fullText; textarea.classList.add('gemini-filled'); }
+
+if (state.slowMode) {
+addLog('info', 'Slow Mode: Отправка ответа на вопрос...');
+await sendSingleQuestionAnswer(question);
+}
+
+addLog('response', 'Ответ на вопрос сгенерирован', { question_id: questionId.substring(0, 8), text: fullText.substring(0, 100) });
+showToast('Ответ на вопрос сгенерирован', 'success');
+renderQuestionsTable();
+updateDailyCounterDisplay();
+} catch (e) {
+addLog('error', 'Ошибка генерации', e.message);
+showToast(`Ошибка: ${e.message}`, 'error');
+}
+}
+
 async function sendSingleResponseToOzon(review) {
 const maxRetries = 3;
 let retryCount = 0;
 
 while (retryCount < maxRetries) {
 try {
-// Если отзыв БЕЗ текста - НЕ вызываем API (Ozon не позволяет комментировать пустые отзывы)
-// Просто помечаем локально как PROCESSED и удаляем из списка
 if (!review.text || review.text.trim().length === 0) {
-addLog('info', `Отзыв ${review.id.substring(0, 8)} без текста. Меняю статус на PROCESSED локально (API не поддерживает комментирование пустых отзывов).`);
+addLog('info', `Отзыв ${review.id.substring(0, 8)} без текста. Меняю статус на PROCESSED локально.`);
 review.status = 'PROCESSED';
 state.reviews = state.reviews.filter(r => r.id !== review.id);
 return;
 }
 
-// Если есть текст ответа - отправляем комментарий через API
 if (review.response && review.response.trim().length > 0) {
 const requestBody = { 
-    review_id: review.id, 
-    text: review.response, 
-    mark_review_as_processed: true 
+review_id: review.id, 
+text: review.response, 
+mark_review_as_processed: true 
 };
 
 addLog('request', `Отправка ответа на отзыв ${review.id.substring(0, 8)}`, requestBody);
 
 const res = await fetch(getOzonUrl('/v1/review/comment/create'), { 
-    method: 'POST', 
-    headers: getAuthHeaders(), 
-    body: JSON.stringify(requestBody) 
+method: 'POST', 
+headers: getAuthHeaders(), 
+body: JSON.stringify(requestBody) 
 });
 
 if (res.status === 429) {
-    retryCount++;
-    if (retryCount < maxRetries) {
-        const waitTime = retryCount * 2000;
-        addLog('info', `HTTP 429 - слишком много запросов. Ожидание ${waitTime/1000}с...`);
-        await sleep(waitTime);
-        continue;
-    }
+retryCount++;
+if (retryCount < maxRetries) {
+const waitTime = retryCount * 2000;
+addLog('info', `HTTP 429 - слишком много запросов. Ожидание ${waitTime/1000}с...`);
+await sleep(waitTime);
+continue;
+}
 }
 
 if (!res.ok) { 
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(`HTTP ${res.status}: ${errorData.message || errorData.code || res.statusText}`); 
+const errorData = await res.json().catch(() => ({}));
+throw new Error(`HTTP ${res.status}: ${errorData.message || errorData.code || res.statusText}`); 
 }
 
 const responseData = await res.json();
@@ -1343,7 +1549,6 @@ state.reviews = state.reviews.filter(r => r.id !== review.id);
 return;
 }
 
-// Если есть текст отзыва, но нет ответа - помечаем локально
 addLog('info', `Отзыв ${review.id.substring(0, 8)} без ответа. Пропускаем.`);
 review.status = 'PROCESSED';
 state.reviews = state.reviews.filter(r => r.id !== review.id);
@@ -1353,30 +1558,125 @@ return;
 addLog('error', `Ошибка отправки ${review.id.substring(0,8)}`, e.message);
 retryCount++;
 if (retryCount < maxRetries) {
-    const waitTime = retryCount * 2000;
-    addLog('info', `Повторная попытка через ${waitTime/1000}с...`);
-    await sleep(waitTime);
+const waitTime = retryCount * 2000;
+addLog('info', `Повторная попытка через ${waitTime/1000}с...`);
+await sleep(waitTime);
 } else {
-    throw e;
+throw e;
 }
 }
 }
+}
+
+async function sendSingleQuestionAnswer(question) {
+const maxRetries = 3;
+let retryCount = 0;
+
+while (retryCount < maxRetries) {
+try {
+if (!question.response || question.response.trim().length === 0) {
+addLog('info', `Вопрос ${question.id.substring(0, 8)} без ответа. Меняю статус на PROCESSED.`);
+await changeQuestionStatus(question.id, 'PROCESSED');
+question.status = 'PROCESSED';
+state.questions = state.questions.filter(q => q.id !== question.id);
+return;
+}
+
+const requestBody = { 
+question_id: question.id,
+sku: question.sku,
+text: question.response
+};
+
+addLog('request', `Отправка ответа на вопрос ${question.id.substring(0, 8)}`, requestBody);
+
+const res = await fetch(getOzonUrl('/v1/question/answer/create'), { 
+method: 'POST', 
+headers: getAuthHeaders(), 
+body: JSON.stringify(requestBody) 
+});
+
+if (res.status === 429) {
+retryCount++;
+if (retryCount < maxRetries) {
+const waitTime = retryCount * 2000;
+addLog('info', `HTTP 429 - слишком много запросов. Ожидание ${waitTime/1000}с...`);
+await sleep(waitTime);
+continue;
+}
+}
+
+if (!res.ok) { 
+const errorData = await res.json().catch(() => ({}));
+throw new Error(`HTTP ${res.status}: ${errorData.message || errorData.code || res.statusText}`); 
+}
+
+const responseData = await res.json();
+addLog('response', `Ответ на вопрос успешно отправлен ${question.id.substring(0, 8)}`, responseData);
+
+await changeQuestionStatus(question.id, 'PROCESSED');
+question.status = 'PROCESSED';
+state.questions = state.questions.filter(q => q.id !== question.id);
+return;
+
+} catch (e) {
+addLog('error', `Ошибка отправки ответа на вопрос ${question.id.substring(0,8)}`, e.message);
+retryCount++;
+if (retryCount < maxRetries) {
+const waitTime = retryCount * 2000;
+addLog('info', `Повторная попытка через ${waitTime/1000}с...`);
+await sleep(waitTime);
+} else {
+throw e;
+}
+}
+}
+}
+
+async function changeQuestionStatus(questionId, status) {
+const maxRetries = 3;
+let retryCount = 0;
+
+while (retryCount < maxRetries) {
+try {
+await sleep(300);
+const res = await fetch(getOzonUrl('/v1/question/change-status'), {
+method: 'POST',
+headers: getAuthHeaders(),
+body: JSON.stringify({ question_ids: [questionId], status: status })
+});
+
+if (res.status === 429) {
+retryCount++;
+if (retryCount < maxRetries) {
+const waitTime = retryCount * 2000;
+addLog('info', `HTTP 429 при изменении статуса вопроса. Ожидание ${waitTime/1000}с...`);
+await sleep(waitTime);
+continue;
+}
+}
+
+if (!res.ok) throw new Error(`HTTP ${res.status}`);
+addLog('info', `Статус вопроса ${questionId.substring(0, 8)} изменен на ${status}`);
+return true;
+} catch (e) {
+addLog('error', `Ошибка изменения статуса вопроса ${questionId}`, e.message);
+retryCount++;
+if (retryCount < maxRetries) {
+const waitTime = retryCount * 2000;
+await sleep(waitTime);
+} else {
+return false;
+}
+}
+}
+return false;
 }
 
 function cancelSending() {
 state.isSendingCancelled = true;
-showToast('Отмена отправки... Завершится после текущего отзыва', 'info');
+showToast('Отмена отправки... Завершится после текущего элемента', 'info');
 addLog('info', 'Пользователь запросил отмену отправки');
-}
-
-function saveResponseAsTemplate(reviewId) {
-const review = state.reviews.find(r => r.id === reviewId);
-if (!review || !review.response?.trim()) { showToast('Нет ответа для сохранения', 'error'); return; }
-state.currentTemplateReviewId = null; state.currentTemplateEditId = null;
-document.getElementById('templateModalTitle').innerHTML = '<i class="ph ph-floppy-disk mr-2 text-yellow-400"></i>Сохранить ответ как шаблон';
-document.getElementById('templateName').value = `Шаблон от ${new Date().toLocaleDateString('ru-RU')}`;
-document.getElementById('templateText').value = review.response;
-document.getElementById('templateModal').classList.remove('hidden');
 }
 
 function toggleSelectAll(checked) {
@@ -1384,26 +1684,52 @@ if (checked) state.filteredReviews.forEach(r => state.selectedIds.add(r.id));
 else state.selectedIds.clear();
 renderReviewsTable(); updateStats();
 }
+
+function toggleSelectAllQuestions(checked) {
+if (checked) state.filteredQuestions.forEach(q => state.selectedQuestionIds.add(q.id));
+else state.selectedQuestionIds.clear();
+renderQuestionsTable(); updateStats();
+}
+
 function toggleSelect(id) {
 state.selectedIds.has(id) ? state.selectedIds.delete(id) : state.selectedIds.add(id);
 updateStats();
 }
+
+function toggleSelectQuestion(id) {
+state.selectedQuestionIds.has(id) ? state.selectedQuestionIds.delete(id) : state.selectedQuestionIds.add(id);
+updateStats();
+}
+
 function updateResponse(id, text) {
 const r = state.reviews.find(x => x.id === id);
 if (r) r.response = text;
 }
 
+function updateQuestionResponse(id, text) {
+const q = state.questions.find(x => x.id === id);
+if (q) q.response = text;
+}
+
 function exportData() {
 const format = document.getElementById('exportFormat').value;
-const data = state.filteredReviews.map(r => {
+let data;
+if (state.currentTab === 'reviews') {
+data = state.filteredReviews.map(r => {
 const prod = state.productDescriptions[r.sku];
-return { id: r.id, sku: r.sku, product_name: prod?.name || '', product_description: prod?.description || '', rating: r.rating, text: r.text, published_at: r.published_at, status: r.status, response: r.response || '' };
+return { id: r.id, sku: r.sku, product_name: prod?.name || '', rating: r.rating, text: r.text, published_at: r.published_at, status: r.status, response: r.response || '' };
 });
+} else {
+data = state.filteredQuestions.map(q => {
+return { id: q.id, sku: q.sku, author: q.author_name, text: q.text, published_at: q.published_at, status: q.status, answers_count: q.answers_count, response: q.response || '' };
+});
+}
 try {
 const dateStr = new Date().toISOString().slice(0,10);
-if (format === 'json') downloadFile(data, `ozon_reviews_${dateStr}.json`, 'application/json');
-else if (format === 'excel') exportToExcel(data, `ozon_reviews_${dateStr}.xlsx`);
-else if (format === 'csv') exportToCSV(data, `ozon_reviews_${dateStr}.csv`);
+const prefix = state.currentTab === 'reviews' ? 'ozon_reviews' : 'ozon_questions';
+if (format === 'json') downloadFile(data, `${prefix}_${dateStr}.json`, 'application/json');
+else if (format === 'excel') exportToExcel(data, `${prefix}_${dateStr}.xlsx`);
+else if (format === 'csv') exportToCSV(data, `${prefix}_${dateStr}.csv`);
 showToast(`Экспорт в ${format.toUpperCase()} готов`, 'success');
 addLog('info', `Экспорт в ${format}`, { count: data.length });
 } catch (e) { addLog('error', 'Ошибка экспорта', e.message); showToast(`Ошибка: ${e.message}`, 'error'); }
@@ -1429,10 +1755,16 @@ data.push(obj);
 if (!Array.isArray(data)) throw new Error('Неверный формат');
 let count = 0;
 data.forEach(item => {
+if (state.currentTab === 'reviews') {
 const rev = state.reviews.find(x => x.id === item.id || x.id === item.review_id);
 if (rev && (item.response !== undefined && item.response !== null)) { rev.response = item.response; count++; }
+} else {
+const q = state.questions.find(x => x.id === item.id);
+if (q && (item.response !== undefined && item.response !== null)) { q.response = item.response; count++; }
+}
 });
-renderReviewsTable(); showToast(`Импортировано ${count} ответов`, 'success');
+if (state.currentTab === 'reviews') renderReviewsTable(); else renderQuestionsTable();
+showToast(`Импортировано ${count} ответов`, 'success');
 addLog('info', 'Импорт данных', { count, format });
 } catch (err) { addLog('error', 'Ошибка импорта', err.message); showToast('Ошибка: ' + err.message, 'error'); }
 };
@@ -1441,12 +1773,12 @@ input.value = '';
 }
 
 async function sendResponses() {
+if (state.currentTab === 'reviews') {
 if (state.selectedIds.size === 0) return showToast('Выберите отзывы', 'error');
 const toSend = state.reviews.filter(r => state.selectedIds.has(r.id));
 if (toSend.length === 0) return showToast('Нет отзывов для отправки', 'error');
 
 state.isSendingCancelled = false;
-
 document.getElementById('btnSend').classList.add('hidden');
 document.getElementById('btnCancel').classList.remove('hidden');
 document.getElementById('btnCancel').disabled = false;
@@ -1467,8 +1799,8 @@ await sendSingleResponseToOzon(r);
 sent++;
 renderReviewsTable();
 } catch (e) { 
-    err++; 
-    addLog('error', `Ошибка отправки ${r.id.substring(0,8)}`, e.message); 
+err++; 
+addLog('error', `Ошибка отправки ${r.id.substring(0,8)}`, e.message); 
 }
 }
 
@@ -1481,7 +1813,49 @@ document.getElementById('btnCancel').classList.add('hidden');
 let msg = `Отправлено: ${sent} | Ошибки: ${err}`;
 if (cancelled > 0) msg += ` | Отменено: ${cancelled}`;
 showToast(msg, sent > 0 ? 'success' : 'error');
-addLog('info', 'Отправка завершена', { sent, err, cancelled });
+addLog('info', 'Отправка отзывов завершена', { sent, err, cancelled });
+} else {
+if (state.selectedQuestionIds.size === 0) return showToast('Выберите вопросы', 'error');
+const toSend = state.questions.filter(q => state.selectedQuestionIds.has(q.id));
+if (toSend.length === 0) return showToast('Нет вопросов для отправки', 'error');
+
+state.isSendingCancelled = false;
+document.getElementById('btnSend').classList.add('hidden');
+document.getElementById('btnCancel').classList.remove('hidden');
+document.getElementById('btnCancel').disabled = false;
+
+let sent = 0, err = 0, cancelled = 0;
+
+for (let i = 0; i < toSend.length; i++) {
+if (state.isSendingCancelled) {
+addLog('info', `Отправка прервана пользователем. Обработано: ${sent}, Ошибок: ${err}, Осталось: ${toSend.length - i}`);
+cancelled = toSend.length - i;
+break;
+}
+
+const q = toSend[i];
+try {
+updateProgress(sent + err, toSend.length, `Отправка ${q.id.substring(0, 8)}... (${i + 1}/${toSend.length})`);
+await sendSingleQuestionAnswer(q);
+sent++;
+renderQuestionsTable();
+} catch (e) { 
+err++; 
+addLog('error', `Ошибка отправки ${q.id.substring(0,8)}`, e.message); 
+}
+}
+
+applyQuestionFilters(); 
+hideProgress();
+
+document.getElementById('btnSend').classList.remove('hidden');
+document.getElementById('btnCancel').classList.add('hidden');
+
+let msg = `Отправлено: ${sent} | Ошибки: ${err}`;
+if (cancelled > 0) msg += ` | Отменено: ${cancelled}`;
+showToast(msg, sent > 0 ? 'success' : 'error');
+addLog('info', 'Отправка ответов на вопросы завершена', { sent, err, cancelled });
+}
 }
 
 function downloadFile(data, filename, type) {
@@ -1489,7 +1863,7 @@ const blob = new Blob([JSON.stringify(data, null, 2)], { type });
 const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
 }
 function exportToExcel(data, filename) {
-const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Reviews'); XLSX.writeFile(wb, filename);
+const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Data'); XLSX.writeFile(wb, filename);
 }
 function exportToCSV(data, filename) {
 const csv = XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(data));
@@ -1513,8 +1887,18 @@ document.addEventListener('mousemove', onMove); document.addEventListener('mouse
 function generateWithAI() {
 const apiKey = document.getElementById('geminiApiKey').value.trim();
 if (!apiKey) { showToast('Введите Gemini API Key', 'error'); return; }
-const selectedReviews = state.reviews.filter(r => state.selectedIds.has(r.id));
-if (selectedReviews.length === 0) { showToast('Выберите отзывы', 'error'); return; }
+
+let selectedItems;
+let typeText;
+if (state.currentTab === 'reviews') {
+selectedItems = state.reviews.filter(r => state.selectedIds.has(r.id));
+typeText = 'отзывов';
+} else {
+selectedItems = state.questions.filter(q => state.selectedQuestionIds.has(q.id));
+typeText = 'вопросов';
+}
+
+if (selectedItems.length === 0) { showToast('Выберите элементы', 'error'); return; }
 if (!document.getElementById('geminiModel').value) { showToast('Обновите список моделей', 'error'); return; }
 
 if (state.slowMode && !checkDailyLimit()) {
@@ -1522,7 +1906,8 @@ showToast('Превышен дневной лимит 500 запросов. По
 return;
 }
 
-document.getElementById('geminiCount').textContent = selectedReviews.length;
+document.getElementById('geminiCount').textContent = selectedItems.length;
+document.getElementById('geminiType').textContent = typeText;
 document.getElementById('geminiModal').classList.remove('hidden');
 document.getElementById('geminiProgress').classList.add('hidden');
 document.getElementById('btnStartGemini').disabled = false;
@@ -1561,14 +1946,24 @@ if (display) display.textContent = count;
 }
 
 async function startGeminiGeneration() {
-const selectedReviews = state.reviews.filter(r => state.selectedIds.has(r.id));
-const promptTemplate = document.getElementById('geminiPromptTemplate').value.trim();
+let selectedItems;
+let isReviews = state.currentTab === 'reviews';
+
+if (isReviews) {
+selectedItems = state.reviews.filter(r => state.selectedIds.has(r.id));
+} else {
+selectedItems = state.questions.filter(q => state.selectedQuestionIds.has(q.id));
+}
+
+const promptTemplate = isReviews ? 
+document.getElementById('geminiPromptTemplate').value.trim() : 
+document.getElementById('geminiPromptQuestions').value.trim();
 
 document.getElementById('btnStartGemini').disabled = true;
 document.getElementById('btnStartGemini').innerHTML = '<i class="ph ph-spinner spinner mr-2"></i> Генерация...';
 document.getElementById('geminiProgress').classList.remove('hidden');
 
-let reviewsToProcess = [...selectedReviews];
+let itemsToProcess = [...selectedItems];
 if (state.slowMode) {
 const dailyLimit = 500;
 const currentUsage = getDailyUsage();
@@ -1580,48 +1975,60 @@ closeGeminiModal();
 return;
 }
 
-if (reviewsToProcess.length > remaining) {
-showToast(`Внимание: Дневной лимит позволяет обработать только ${remaining} из ${reviewsToProcess.length} выбранных.`, 'info');
-addLog('info', `Лимит: обработаем ${remaining} из ${reviewsToProcess.length}`);
-reviewsToProcess = reviewsToProcess.slice(0, remaining);
+if (itemsToProcess.length > remaining) {
+showToast(`Внимание: Дневной лимит позволяет обработать только ${remaining} из ${itemsToProcess.length} выбранных.`, 'info');
+addLog('info', `Лимит: обработаем ${remaining} из ${itemsToProcess.length}`);
+itemsToProcess = itemsToProcess.slice(0, remaining);
 }
 }
 
 let completed = 0, errors = 0;
 
-for (let i = 0; i < reviewsToProcess.length; i++) {
-const review = reviewsToProcess[i];
+for (let i = 0; i < itemsToProcess.length; i++) {
+const item = itemsToProcess[i];
 try {
-updateGeminiProgress(completed + errors, reviewsToProcess.length, `Обработка ${review.id.substring(0, 8)}...`);
+updateGeminiProgress(completed + errors, itemsToProcess.length, `Обработка ${item.id.substring(0, 8)}...`);
 
-const response = await generateSingleReviewWithAI(review, promptTemplate);
-review.response = response;
+let response;
+if (isReviews) {
+response = await generateSingleReviewWithAI(item, promptTemplate);
+} else {
+response = await generateSingleQuestionWithAI(item, promptTemplate);
+}
+item.response = response;
 completed++;
 
 if (state.slowMode) incrementDailyCounter();
 
-const textarea = document.querySelector(`textarea[data-id="${review.id}"]`);
+const textarea = document.querySelector(`textarea[data-id="${item.id}"]`);
 if (textarea) { textarea.value = response; textarea.classList.add('gemini-filled'); }
 
 if (state.slowMode) {
-addLog('info', `Slow Mode: Авто-отправка ${review.id.substring(0, 8)}...`);
-await sendSingleResponseToOzon(review);
+addLog('info', `Slow Mode: Авто-отправка ${item.id.substring(0, 8)}...`);
+if (isReviews) {
+await sendSingleResponseToOzon(item);
 renderReviewsTable();
+} else {
+await sendSingleQuestionAnswer(item);
+renderQuestionsTable();
+}
 }
 
-if (state.slowMode && i < reviewsToProcess.length - 1) {
-updateGeminiProgress(completed + errors, reviewsToProcess.length, `Ожидание лимита (5с)...`);
+if (state.slowMode && i < itemsToProcess.length - 1) {
+updateGeminiProgress(completed + errors, itemsToProcess.length, `Ожидание лимита (5с)...`);
 await sleep(5500);
 }
 
 } catch (e) { errors++; addLog('error', 'Ошибка генерации', e.message); }
 }
 
-updateGeminiProgress(completed, reviewsToProcess.length, 'Готово!');
+updateGeminiProgress(completed, itemsToProcess.length, 'Готово!');
 document.getElementById('btnStartGemini').innerHTML = '<i class="ph ph-check mr-2"></i> Завершено';
 setTimeout(() => {
 closeGeminiModal();
-if (!state.slowMode) renderReviewsTable();
+if (!state.slowMode) {
+if (isReviews) renderReviewsTable(); else renderQuestionsTable();
+}
 showToast(`Сгенерировано: ${completed}, Ошибок: ${errors}`, completed > 0 ? 'success' : 'error');
 addLog('info', 'Генерация завершена', { completed, errors });
 updateDailyCounterDisplay();
@@ -1662,7 +2069,54 @@ safetySettings: [
 };
 
 try {
-addLog('request', 'Запрос к Gemini', { model, review_id: review.id.substring(0, 8) });
+addLog('request', 'Запрос к Gemini (отзыв)', { model, review_id: review.id.substring(0, 8) });
+const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
+if (!response.ok) { const err = await response.json(); addLog('error', 'Ошибка Gemini', err); throw new Error(err.error?.message || 'Ошибка API'); }
+const data = await response.json();
+let fullText = '';
+if (data.candidates && data.candidates.length > 0 && data.candidates[0].content?.parts) {
+fullText = data.candidates[0].content.parts.map(p => p.text).join('');
+}
+fullText = fullText.trim() || 'Не удалось сгенерировать';
+addLog('response', 'Ответ от Gemini', { response: fullText });
+return fullText;
+} catch (e) { addLog('error', 'Ошибка Gemini', e.message); throw new Error(e.message); }
+}
+
+async function generateSingleQuestionWithAI(question, promptTemplate) {
+const apiKey = document.getElementById('geminiApiKey').value.trim();
+const model = document.getElementById('geminiModel').value;
+const maxTokens = parseInt(document.getElementById('geminiMaxTokens').value) || 200;
+
+const prod = state.productDescriptions[question.sku];
+let productInfo = '';
+if (prod) {
+productInfo = `Товар: ${prod.name}
+Ozon ID: ${question.sku}
+${prod.description ? `Описание: ${prod.description.substring(0, 200)}
+` : ''}`;
+}
+
+const userPrompt = `${promptTemplate}
+${productInfo}
+Вопрос покупателя:
+${question.text || 'Без текста'}
+Напиши ответ:`;
+const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+const requestBody = {
+contents: [{ parts: [{ text: userPrompt }] }],
+generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens, topP: 0.95, topK: 40, responseMimeType: "text/plain" },
+safetySettings: [
+{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+{ category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+{ category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+]
+};
+
+try {
+addLog('request', 'Запрос к Gemini (вопрос)', { model, question_id: question.id.substring(0, 8) });
 const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
 if (!response.ok) { const err = await response.json(); addLog('error', 'Ошибка Gemini', err); throw new Error(err.error?.message || 'Ошибка API'); }
 const data = await response.json();
