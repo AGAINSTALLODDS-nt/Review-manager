@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.11</title>
+    <title>Ozon Reviews AI Manager v.0.12</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
@@ -52,6 +52,8 @@
         .product-desc::-webkit-scrollbar-track { background: rgba(51, 65, 85, 0.3); border-radius: 2px; }
         .product-desc::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
         .product-sku { color: #64748b; font-size: 0.7rem; font-family: monospace; }
+        .product-photo-img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #334155; }
+        .product-photo-placeholder { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #1e293b; border-radius: 6px; border: 1px solid #334155; color: #475569; }
         .response-input { min-height: 100px; width: 100%; resize: vertical; background: #0f172a; border: 1px solid #475569; color: #e2e8f0; padding: 8px; border-radius: 6px; font-size: 0.85rem; }
         .response-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
         .response-input.gemini-filled { border-color: #10b981; background: #022c22; }
@@ -135,7 +137,7 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.11
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.12
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
@@ -194,7 +196,7 @@
 </div>
 
 <div class="flex gap-4 mb-4 border-b border-slate-700 pb-2">
-<div class="tab-btn active" onclick="switchTab('reviews')" id="tabBtnReviews"> Отзывы</div>
+<div class="tab-btn active" onclick="switchTab('reviews')" id="tabBtnReviews">📋 Отзывы</div>
 <div class="tab-btn" onclick="switchTab('questions')" id="tabBtnQuestions">❓ Вопросы</div>
 <div class="flex-1"></div>
 <span id="statsDisplay" class="text-xs text-slate-400 flex items-center">Загружено: 0 | Выбрано: 0</span>
@@ -294,13 +296,15 @@
 <th style="width: 70px;">Дата</th>
 <th style="width: 60px;">Ozon ID</th>
 <th style="width: 45px;">Оценка</th>
+<th style="width: 80px;">Фото товара</th>
+<th style="width: 250px;">Товар</th>
 <th style="width: 100px;">Статус</th>
 <th style="width: 250px;">Текст отзыва</th>
 <th style="width: 350px;">Ответ</th>
 </tr>
 </thead>
 <tbody id="reviewsBody">
-<tr><td colspan="7" class="text-center text-slate-500 py-10">Нажмите «Загрузить отзывы» для начала</td></tr>
+<tr><td colspan="9" class="text-center text-slate-500 py-10">Нажмите «Загрузить отзывы» для начала</td></tr>
 </tbody>
 </table>
 </div>
@@ -335,7 +339,15 @@
 </div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Ozon ID:</label>
-<input type="text" id="searchQuestionSku" placeholder="Поиск" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-28" oninput="applyQuestionFilters()">
+<input type="text" id="searchQuestionSku" placeholder="SKU" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-28" oninput="applyQuestionFilters()">
+</div>
+<div class="flex items-center gap-2">
+<label class="text-xs text-slate-400">Артикул:</label>
+<input type="text" id="searchQuestionOfferId" placeholder="Артикул" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-28" oninput="applyQuestionFilters()">
+</div>
+<div class="flex items-center gap-2">
+<label class="text-xs text-slate-400">Название:</label>
+<input type="text" id="searchQuestionName" placeholder="Название товара" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-40" oninput="applyQuestionFilters()">
 </div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Дата:</label>
@@ -360,6 +372,8 @@
 <th style="width: 40px;"><input type="checkbox" id="selectAllQuestions" class="checkbox-custom" onchange="toggleSelectAllQuestions(this.checked)"></th>
 <th style="width: 70px;">Дата</th>
 <th style="width: 60px;">Ozon ID</th>
+<th style="width: 80px;">Фото товара</th>
+<th style="width: 250px;">Товар</th>
 <th style="width: 100px;">Автор</th>
 <th style="width: 100px;">Статус</th>
 <th style="width: 250px;">Текст вопроса</th>
@@ -367,7 +381,7 @@
 </tr>
 </thead>
 <tbody id="questionsBody">
-<tr><td colspan="7" class="text-center text-slate-500 py-10">Нажмите «Загрузить вопросы» для начала</td></tr>
+<tr><td colspan="9" class="text-center text-slate-500 py-10">Нажмите «Загрузить вопросы» для начала</td></tr>
 </tbody>
 </table>
 </div>
@@ -583,6 +597,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 document.addEventListener('DOMContentLoaded', () => {
 loadSettings();
 loadTemplates();
+loadProductDescriptionsFromStorage();
 initResizableTable('reviewsHead');
 initResizableTable('questionsHead');
 updateStats();
@@ -600,7 +615,7 @@ closeRatingDropdown();
 window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); }, true);
 window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.11 - Reviews + Questions' });
+addLog('info', 'Приложение запущено', { version: 'v.0.12 - Product Info & Filters' });
 });
 
 function loadSettings() {
@@ -660,18 +675,6 @@ document.getElementById('tabBtnQuestions').classList.toggle('active', tab === 'q
 if (tab === 'settings') renderLog();
 if (tab === 'templates') renderTemplatesList();
 updateStats();
-updateFetchButton();
-}
-
-function updateFetchButton() {
-const btnFetch = document.getElementById('btnFetch');
-if (state.currentTab === 'reviews') {
-btnFetch.innerHTML = '<i class="ph ph-arrow-clockwise mr-2"></i> Загрузить отзывы';
-btnFetch.onclick = () => fetchReviews();
-} else if (state.currentTab === 'questions') {
-btnFetch.innerHTML = '<i class="ph ph-arrow-clockwise mr-2"></i> Загрузить вопросы';
-btnFetch.onclick = () => fetchQuestions();
-}
 }
 
 function getOzonUrl(path) {
@@ -925,12 +928,38 @@ if (template && item) { item.response = template.text; const textarea = document
 closeTemplateSelectModal(); showToast('Шаблон применён', 'success');
 }
 
-async function fetchProductDescriptionsForReviews() {
-const uniqueSkus = [...new Set(state.reviews.map(r => r.sku).filter(s => s && !state.productDescriptions[s]))];
-if (uniqueSkus.length === 0) return;
+// Загрузка описаний товаров из localStorage
+function loadProductDescriptionsFromStorage() {
+try {
+const saved = localStorage.getItem('ozon_product_descriptions');
+if (saved) {
+state.productDescriptions = JSON.parse(saved);
+addLog('info', 'Загружены описания товаров из локального хранилища', { count: Object.keys(state.productDescriptions).length });
+}
+} catch (e) {
+addLog('error', 'Ошибка загрузки описаний из localStorage', e.message);
+}
+}
+
+// Сохранение описаний товаров в localStorage
+function saveProductDescriptionsToStorage() {
+try {
+localStorage.setItem('ozon_product_descriptions', JSON.stringify(state.productDescriptions));
+} catch (e) {
+addLog('error', 'Ошибка сохранения описаний в localStorage', e.message);
+}
+}
+
+async function fetchProductDescriptions(skus) {
+if (!skus || skus.length === 0) return;
+
+const uniqueSkus = [...new Set(skus.filter(s => s && !state.productDescriptions[String(s)]))];
+if (uniqueSkus.length === 0) {
+addLog('info', 'Все описания товаров уже загружены');
+return;
+}
 
 addLog('info', `Загрузка описаний для ${uniqueSkus.length} товаров`);
-let loaded = 0;
 const batchSize = 50;
 
 for (let i = 0; i < uniqueSkus.length; i += batchSize) {
@@ -947,23 +976,25 @@ const data = await res.json();
 if (data.result && Array.isArray(data.result)) {
 data.result.forEach(p => {
 if (p.sku) {
-state.productDescriptions[p.sku] = {
+state.productDescriptions[String(p.sku)] = {
 name: p.name || '',
 description: '',
 offer_id: p.offer_id || '',
-sku: p.sku,
+sku: String(p.sku),
 primary_image: p.primary_image || ''
 };
 }
 });
 }
-loaded += batch.length;
+} else {
+addLog('error', `Ошибка загрузки атрибутов товаров: HTTP ${res.status}`);
 }
 } catch (e) {
 addLog('error', `Ошибка загрузки описаний`, e.message);
 }
-await new Promise(r => setTimeout(r, 300));
+await sleep(300);
 }
+
 const offerIds = Object.values(state.productDescriptions).map(p => p.offer_id).filter(Boolean);
 if (offerIds.length > 0) {
 for (let i = 0; i < offerIds.length; i += 50) {
@@ -985,14 +1016,21 @@ product.description = data.result.description.replace(/<[^>]*>/g, ' ').replace(/
 }
 }
 } catch (e) { }
-await new Promise(r => setTimeout(r, 200));
+await sleep(200);
 }
 }
 }
+
+saveProductDescriptionsToStorage();
 updateProgress(uniqueSkus.length, uniqueSkus.length, 'Описания загружены');
 setTimeout(() => hideProgress(), 1000);
+
+if (state.currentTab === 'reviews') {
 renderReviewsTable();
-addLog('info', 'Загрузка описаний товаров завершена', { loaded: loaded });
+} else {
+renderQuestionsTable();
+}
+addLog('info', 'Загрузка описаний товаров завершена', { loaded: uniqueSkus.length });
 }
 
 async function fetchReviews(append = false) {
@@ -1011,7 +1049,6 @@ if (!append) {
 state.reviews = [];
 state.lastReviewId = null;
 state.selectedIds.clear();
-state.productDescriptions = {};
 }
 
 const limit = 100;
@@ -1076,7 +1113,7 @@ page++;
 updateProgress(page, maxPages, `Загружено ${state.reviews.length} отзывов (${page}/${maxPages} стр.)`);
 
 if (page < maxPages && data.has_next) {
-await new Promise(resolve => setTimeout(resolve, 500));
+await sleep(500);
 }
 
 if (!data.has_next) break;
@@ -1086,7 +1123,8 @@ applyFiltersSafe();
 showToast(`Загружено ${state.reviews.length} отзывов`, 'success');
 addLog('info', 'Загрузка отзывов завершена', { total: state.reviews.length });
 
-fetchProductDescriptionsForReviews().catch(e => addLog('error', 'Ошибка загрузки описаний', e.message));
+const skus = state.reviews.map(r => r.sku);
+fetchProductDescriptions(skus).catch(e => addLog('error', 'Ошибка загрузки описаний', e.message));
 
 } catch (e) {
 addLog('error', 'Ошибка загрузки отзывов', e.message);
@@ -1179,7 +1217,7 @@ page++;
 updateProgress(page, maxPages, `Загружено ${state.questions.length} вопросов (${page}/${maxPages} стр.)`);
 
 if (page < maxPages && data.has_next) {
-await new Promise(resolve => setTimeout(resolve, 500));
+await sleep(500);
 }
 
 if (!data.has_next) break;
@@ -1188,6 +1226,9 @@ if (!data.has_next) break;
 applyQuestionFilters();
 showToast(`Загружено ${state.questions.length} вопросов`, 'success');
 addLog('info', 'Загрузка вопросов завершена', { total: state.questions.length });
+
+const skus = state.questions.map(q => q.sku);
+fetchProductDescriptions(skus).catch(e => addLog('error', 'Ошибка загрузки описаний', e.message));
 
 } catch (e) {
 addLog('error', 'Ошибка загрузки вопросов', e.message);
@@ -1251,6 +1292,8 @@ applyFiltersSafe();
 function applyQuestionFilters() {
 try {
 const skuSearch = document.getElementById('searchQuestionSku')?.value?.trim().toLowerCase() || '';
+const offerIdSearch = document.getElementById('searchQuestionOfferId')?.value?.trim().toLowerCase() || '';
+const nameSearch = document.getElementById('searchQuestionName')?.value?.trim().toLowerCase() || '';
 const dateSort = document.getElementById('sortQuestionDate')?.value || 'desc';
 const statusFilter = document.getElementById('filterQuestionStatus')?.value || 'ALL';
 
@@ -1261,6 +1304,20 @@ filtered = filtered.filter(q => q.status === statusFilter);
 }
 
 if (skuSearch) filtered = filtered.filter(q => String(q.sku).toLowerCase().includes(skuSearch));
+
+if (offerIdSearch) {
+filtered = filtered.filter(q => {
+const prod = state.productDescriptions[String(q.sku)];
+return prod && prod.offer_id && String(prod.offer_id).toLowerCase().includes(offerIdSearch);
+});
+}
+
+if (nameSearch) {
+filtered = filtered.filter(q => {
+const prod = state.productDescriptions[String(q.sku)];
+return prod && prod.name && prod.name.toLowerCase().includes(nameSearch);
+});
+}
 
 filtered.sort((a, b) => {
 const dateA = new Date(a.published_at).getTime() || 0;
@@ -1283,7 +1340,7 @@ function renderReviewsTable() {
 const tbody = document.getElementById('reviewsBody');
 tbody.innerHTML = '';
 if (state.filteredReviews.length === 0) {
-tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-8">Нет отзывов по заданным фильтрам</td></tr>';
+tbody.innerHTML = '<tr><td colspan="9" class="text-center text-slate-500 py-8">Нет отзывов по заданным фильтрам</td></tr>';
 return;
 }
 state.filteredReviews.forEach(r => {
@@ -1299,11 +1356,29 @@ let statusText = 'Новый';
 if (r.status === 'VIEWED') { statusBadgeClass = 'badge-viewed'; statusText = 'Просмотрен'; }
 else if (r.status === 'PROCESSED') { statusBadgeClass = 'badge-processed'; statusText = 'Отвечено'; }
 
+const prod = state.productDescriptions[String(r.sku)];
+let photoHtml = '';
+if (prod && prod.primary_image) {
+photoHtml = `<div class="product-photo-cell"><img src="${prod.primary_image}" class="product-photo-img" alt="Product" loading="lazy"></div>`;
+} else {
+photoHtml = `<div class="product-photo-cell"><div class="product-photo-placeholder"><i class="ph ph-image"></i></div></div>`;
+}
+
+const prodHtml = prod ? `
+<div class="product-info-cell">
+<div class="product-name">${prod.name}</div>
+${prod.description ? `<div class="product-desc">${prod.description}</div>` : ''}
+<div class="product-sku">Ozon ID: ${r.sku}${prod.offer_id ? ` | Артикул: ${prod.offer_id}` : ''}</div>
+</div>
+` : `<div class="product-sku">Ozon ID: ${r.sku}</div>`;
+
 tr.innerHTML = `
 <td><input type="checkbox" class="checkbox-custom" ${state.selectedIds.has(r.id) ? 'checked' : ''} onchange="toggleSelect('${r.id}')"></td>
 <td class="text-xs text-slate-400">${dateStr}</td>
 <td class="text-xs font-mono">${r.sku}</td>
 <td class="text-yellow-400 text-sm">${stars}</td>
+<td>${photoHtml}</td>
+<td>${prodHtml}</td>
 <td><span class="status-badge ${statusBadgeClass}">${statusText}</span></td>
 <td><div class="review-text text-slate-300">${r.text || '<span class="text-slate-500 italic">Без текста</span>'}</div></td>
 <td>
@@ -1323,7 +1398,7 @@ function renderQuestionsTable() {
 const tbody = document.getElementById('questionsBody');
 tbody.innerHTML = '';
 if (state.filteredQuestions.length === 0) {
-tbody.innerHTML = '<tr><td colspan="7" class="text-center text-slate-500 py-8">Нет вопросов по заданным фильтрам</td></tr>';
+tbody.innerHTML = '<tr><td colspan="9" class="text-center text-slate-500 py-8">Нет вопросов по заданным фильтрам</td></tr>';
 return;
 }
 state.filteredQuestions.forEach(q => {
@@ -1339,12 +1414,30 @@ if (q.status === 'VIEWED') { statusBadgeClass = 'badge-viewed'; statusText = 'П
 else if (q.status === 'PROCESSED') { statusBadgeClass = 'badge-processed'; statusText = 'Обработан'; }
 else if (q.status === 'UNPROCESSED') { statusBadgeClass = 'badge-unprocessed'; statusText = 'Не обработан'; }
 
+const prod = state.productDescriptions[String(q.sku)];
+let photoHtml = '';
+if (prod && prod.primary_image) {
+photoHtml = `<div class="product-photo-cell"><img src="${prod.primary_image}" class="product-photo-img" alt="Product" loading="lazy"></div>`;
+} else {
+photoHtml = `<div class="product-photo-cell"><div class="product-photo-placeholder"><i class="ph ph-image"></i></div></div>`;
+}
+
+const prodHtml = prod ? `
+<div class="product-info-cell">
+<div class="product-name">${prod.name}</div>
+${prod.description ? `<div class="product-desc">${prod.description}</div>` : ''}
+<div class="product-sku">Ozon ID: ${q.sku}${prod.offer_id ? ` | Артикул: ${prod.offer_id}` : ''}</div>
+</div>
+` : `<div class="product-sku">Ozon ID: ${q.sku}</div>`;
+
 const linkHtml = q.question_link ? `<a href="${q.question_link}" target="_blank" class="question-link">Ссылка на вопрос</a>` : '';
 
 tr.innerHTML = `
 <td><input type="checkbox" class="checkbox-custom" ${state.selectedQuestionIds.has(q.id) ? 'checked' : ''} onchange="toggleSelectQuestion('${q.id}')"></td>
 <td class="text-xs text-slate-400">${dateStr}</td>
 <td class="text-xs font-mono">${q.sku}</td>
+<td>${photoHtml}</td>
+<td>${prodHtml}</td>
 <td><div class="author-name">${q.author_name}</div>${linkHtml}</td>
 <td><span class="status-badge ${statusBadgeClass}">${statusText}</span></td>
 <td><div class="review-text text-slate-300">${q.text || '<span class="text-slate-500 italic">Без текста</span>'}</div><div class="answers-count">Ответов: ${q.answers_count}</div></td>
@@ -1378,7 +1471,7 @@ const model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash-latest';
 const promptTemplate = localStorage.getItem('gemini_prompt') || 'Ты — помощник продавца на Ozon.';
 const maxTokens = parseInt(localStorage.getItem('gemini_max_tokens')) || 200;
 
-const prod = state.productDescriptions[review.sku];
+const prod = state.productDescriptions[String(review.sku)];
 let productInfo = '';
 if (prod) {
 productInfo = `Товар: ${prod.name}
@@ -1447,7 +1540,7 @@ const model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash-latest';
 const promptTemplate = localStorage.getItem('gemini_prompt_questions') || 'Ты — помощник продавца на Ozon.';
 const maxTokens = parseInt(localStorage.getItem('gemini_max_tokens')) || 200;
 
-const prod = state.productDescriptions[question.sku];
+const prod = state.productDescriptions[String(question.sku)];
 let productInfo = '';
 if (prod) {
 productInfo = `Товар: ${prod.name}
@@ -1716,12 +1809,13 @@ const format = document.getElementById('exportFormat').value;
 let data;
 if (state.currentTab === 'reviews') {
 data = state.filteredReviews.map(r => {
-const prod = state.productDescriptions[r.sku];
-return { id: r.id, sku: r.sku, product_name: prod?.name || '', rating: r.rating, text: r.text, published_at: r.published_at, status: r.status, response: r.response || '' };
+const prod = state.productDescriptions[String(r.sku)];
+return { id: r.id, sku: r.sku, product_name: prod?.name || '', offer_id: prod?.offer_id || '', rating: r.rating, text: r.text, published_at: r.published_at, status: r.status, response: r.response || '' };
 });
 } else {
 data = state.filteredQuestions.map(q => {
-return { id: q.id, sku: q.sku, author: q.author_name, text: q.text, published_at: q.published_at, status: q.status, answers_count: q.answers_count, response: q.response || '' };
+const prod = state.productDescriptions[String(q.sku)];
+return { id: q.id, sku: q.sku, product_name: prod?.name || '', offer_id: prod?.offer_id || '', author: q.author_name, text: q.text, published_at: q.published_at, status: q.status, answers_count: q.answers_count, response: q.response || '' };
 });
 }
 try {
@@ -2040,7 +2134,7 @@ const apiKey = document.getElementById('geminiApiKey').value.trim();
 const model = document.getElementById('geminiModel').value;
 const maxTokens = parseInt(document.getElementById('geminiMaxTokens').value) || 200;
 
-const prod = state.productDescriptions[review.sku];
+const prod = state.productDescriptions[String(review.sku)];
 let productInfo = '';
 if (prod) {
 productInfo = `Товар: ${prod.name}
@@ -2088,7 +2182,7 @@ const apiKey = document.getElementById('geminiApiKey').value.trim();
 const model = document.getElementById('geminiModel').value;
 const maxTokens = parseInt(document.getElementById('geminiMaxTokens').value) || 200;
 
-const prod = state.productDescriptions[question.sku];
+const prod = state.productDescriptions[String(question.sku)];
 let productInfo = '';
 if (prod) {
 productInfo = `Товар: ${prod.name}
@@ -2192,3 +2286,4 @@ addLog('response', 'Список моделей обновлен', supportedMode
 </script>
 </body>
 </html>
+
