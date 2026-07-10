@@ -158,7 +158,7 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.10
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.10
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами с AI-генерацией ответов</p>
 </div>
@@ -559,7 +559,7 @@ closeRatingDropdown();
 window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); }, true);
 window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); });
 
-addLog('info', 'Приложение запущено', { version: '9.5 - Fix Status & Cancel' });
+addLog('info', 'Приложение запущено', { version: 'v.0.10 - Fix empty review status' });
 });
 
 function loadSettings() {
@@ -1295,50 +1295,16 @@ let retryCount = 0;
 
 while (retryCount < maxRetries) {
 try {
-// Если отзыв без текста - изменяем статус на PROCESSED через API
+// Если отзыв БЕЗ текста - НЕ вызываем API (Ozon не позволяет комментировать пустые отзывы)
+// Просто помечаем локально как PROCESSED и удаляем из списка
 if (!review.text || review.text.trim().length === 0) {
-addLog('info', `Отзыв ${review.id.substring(0, 8)} без текста. Изменяю статус на PROCESSED через API.`);
-await sleep(500);
-
-// Используем эндпоинт /v1/review/comment/create с mark_review_as_processed: true и пустым текстом
-const requestBody = { 
-    review_id: review.id, 
-    text: ' ', // Пробел вместо пустой строки
-    mark_review_as_processed: true 
-};
-
-addLog('request', `Изменение статуса отзыва ${review.id.substring(0, 8)} на PROCESSED`, requestBody);
-
-const res = await fetch(getOzonUrl('/v1/review/comment/create'), { 
-    method: 'POST', 
-    headers: getAuthHeaders(), 
-    body: JSON.stringify(requestBody) 
-});
-
-if (res.status === 429) {
-    retryCount++;
-    if (retryCount < maxRetries) {
-        const waitTime = retryCount * 2000;
-        addLog('info', `HTTP 429 - слишком много запросов. Ожидание ${waitTime/1000}с...`);
-        await sleep(waitTime);
-        continue;
-    }
-}
-
-if (!res.ok) { 
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(`HTTP ${res.status}: ${errorData.message || errorData.code || res.statusText}`); 
-}
-
-const responseData = await res.json();
-addLog('response', `Статус отзыва ${review.id.substring(0, 8)} изменён на PROCESSED`, responseData);
-
+addLog('info', `Отзыв ${review.id.substring(0, 8)} без текста. Меняю статус на PROCESSED локально (API не поддерживает комментирование пустых отзывов).`);
 review.status = 'PROCESSED';
 state.reviews = state.reviews.filter(r => r.id !== review.id);
 return;
 }
 
-// Если есть текст ответа - отправляем комментарий
+// Если есть текст ответа - отправляем комментарий через API
 if (review.response && review.response.trim().length > 0) {
 const requestBody = { 
     review_id: review.id, 
@@ -1377,6 +1343,7 @@ state.reviews = state.reviews.filter(r => r.id !== review.id);
 return;
 }
 
+// Если есть текст отзыва, но нет ответа - помечаем локально
 addLog('info', `Отзыв ${review.id.substring(0, 8)} без ответа. Пропускаем.`);
 review.status = 'PROCESSED';
 state.reviews = state.reviews.filter(r => r.id !== review.id);
@@ -1478,10 +1445,8 @@ if (state.selectedIds.size === 0) return showToast('Выберите отзыв�
 const toSend = state.reviews.filter(r => state.selectedIds.has(r.id));
 if (toSend.length === 0) return showToast('Нет отзывов для отправки', 'error');
 
-// Сброс флага отмены
 state.isSendingCancelled = false;
 
-// Показываем кнопку отмены
 document.getElementById('btnSend').classList.add('hidden');
 document.getElementById('btnCancel').classList.remove('hidden');
 document.getElementById('btnCancel').disabled = false;
@@ -1489,7 +1454,6 @@ document.getElementById('btnCancel').disabled = false;
 let sent = 0, err = 0, cancelled = 0;
 
 for (let i = 0; i < toSend.length; i++) {
-// Проверка отмены перед каждым отзывом
 if (state.isSendingCancelled) {
 addLog('info', `Отправка прервана пользователем. Обработано: ${sent}, Ошибок: ${err}, Осталось: ${toSend.length - i}`);
 cancelled = toSend.length - i;
@@ -1511,7 +1475,6 @@ renderReviewsTable();
 applyFilters(); 
 hideProgress();
 
-// Возвращаем кнопки
 document.getElementById('btnSend').classList.remove('hidden');
 document.getElementById('btnCancel').classList.add('hidden');
 
@@ -1775,4 +1738,3 @@ addLog('response', 'Список моделей обновлен', supportedMode
 </script>
 </body>
 </html>
-
