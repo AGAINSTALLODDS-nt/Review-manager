@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.13</title>
+    <title>Ozon Reviews AI Manager v.0.14</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
@@ -137,7 +137,7 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.13
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.14
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
@@ -196,7 +196,7 @@
 </div>
 
 <div class="flex gap-4 mb-4 border-b border-slate-700 pb-2">
-<div class="tab-btn active" onclick="switchTab('reviews')" id="tabBtnReviews">📋 Отзывы</div>
+<div class="tab-btn active" onclick="switchTab('reviews')" id="tabBtnReviews"> Отзывы</div>
 <div class="tab-btn" onclick="switchTab('questions')" id="tabBtnQuestions">❓ Вопросы</div>
 <div class="flex-1"></div>
 <span id="statsDisplay" class="text-xs text-slate-400 flex items-center">Загружено: 0 | Выбрано: 0</span>
@@ -401,9 +401,7 @@
 <button onclick="showCreateTemplateModal()" class="btn btn-purple px-4 py-2 rounded-lg text-white text-sm flex items-center">
 <i class="ph ph-plus mr-2"></i> Создать новый шаблон
 </button>
-<button onclick="showSaveCurrentAsTemplateModal()" class="btn btn-warning px-4 py-2 rounded-lg text-white text-sm flex items-center" id="btnSaveCurrentAsTemplate" disabled>
-<i class="ph ph-floppy-disk mr-2"></i> Сохранить текущий ответ как шаблон
-</button>
+<!-- Removed "Save current as template" button as requested -->
 </div>
 <div id="templatesList">
 <div class="text-center text-slate-500 py-8">Нет сохранённых шаблонов</div>
@@ -454,8 +452,9 @@
 <div class="text-[10px] text-slate-400">15 запросов/мин, 500/день. Отправка только вручную кнопкой «Отправить».</div>
 </div>
 </div>
-<div class="text-[10px] text-slate-500 mt-1">
-Использовано запросов сегодня: <span id="dailyCounterDisplay" class="text-yellow-400">0</span> / 200000
+<div class="flex items-center justify-between mt-1">
+    <span class="text-[10px] text-slate-500">Использовано запросов сегодня: <span id="dailyCounterDisplay" class="text-yellow-400">0</span> / 500</span>
+    <button onclick="resetDailyCounter()" class="text-[10px] text-red-400 hover:text-red-300 underline ml-2">Сбросить лимит</button>
 </div>
 <div>
 <label class="text-xs text-slate-400 block mb-1">Лимит токенов</label>
@@ -616,8 +615,16 @@ closeRatingDropdown();
 window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); }, true);
 window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.13 - Manual Send Only' });
+addLog('info', 'Приложение запущено', { version: 'v.0.14 - Reset Counter & Quick Save' });
 });
+
+function resetDailyCounter() {
+    const key = getDailyUsageKey();
+    localStorage.removeItem(key);
+    updateDailyCounterDisplay();
+    showToast('Счетчик запросов обнулен', 'success');
+    addLog('info', 'Счетчик дневных запросов обнулен вручную');
+}
 
 function loadSettings() {
 document.getElementById('ozonClientId').value = localStorage.getItem('ozon_clientId') || '';
@@ -724,7 +731,7 @@ document.getElementById('btnExport').disabled = inTable === 0;
 document.getElementById('btnImport').disabled = inTable === 0;
 document.getElementById('btnSend').disabled = selected === 0;
 document.getElementById('btnAI').disabled = selected === 0 || !localStorage.getItem('gemini_apiKey');
-document.getElementById('btnSaveCurrentAsTemplate').disabled = selected === 0;
+// Removed dependency on btnSaveCurrentAsTemplate as it was removed from UI
 }
 
 function addLog(type, message, detail = null) {
@@ -858,20 +865,7 @@ document.getElementById('templateText').value = '';
 document.getElementById('templateModal').classList.remove('hidden');
 }
 
-function showSaveCurrentAsTemplateModal() {
-let selected;
-if (state.currentTab === 'reviews') {
-selected = state.reviews.filter(r => state.selectedIds.has(r.id));
-} else {
-selected = state.questions.filter(q => state.selectedQuestionIds.has(q.id));
-}
-if (selected.length === 0) { showToast('Выберите элемент с ответом', 'error'); return; }
-state.currentTemplateReviewId = selected[0].id; state.currentTemplateEditId = null;
-document.getElementById('templateModalTitle').innerHTML = '<i class="ph ph-floppy-disk mr-2 text-yellow-400"></i>Сохранить ответ как шаблон';
-document.getElementById('templateName').value = `Шаблон от ${new Date().toLocaleDateString('ru-RU')}`;
-document.getElementById('templateText').value = selected[0].response || '';
-document.getElementById('templateModal').classList.remove('hidden');
-}
+// Removed showSaveCurrentAsTemplateModal as requested
 
 function editTemplate(id) {
 const t = state.templates.find(x => x.id === id); if (!t) return;
@@ -1385,6 +1379,7 @@ tr.innerHTML = `
 <div class="action-btns">
 <button class="action-btn ai" onclick="generateForReview('${r.id}')" title="Сгенерировать ответ AI"><i class="ph ph-sparkle"></i> AI</button>
 <button class="action-btn template" onclick="showTemplateSelectForItem('${r.id}')" title="Выбрать шаблон"><i class="ph ph-files"></i> Шаблон</button>
+<button class="action-btn save" onclick="saveCurrentTextAsTemplate('${r.id}')" title="Сохранить текущий текст как шаблон"><i class="ph ph-floppy-disk"></i> Сохр.</button>
 ${hasResponse ? `<button class="action-btn send" onclick="sendSingleResponseToOzon(state.reviews.find(x=>x.id==='${r.id}'))" title="Отправить ответ"><i class="ph ph-paper-plane-right"></i> Отпр.</button>` : ''}
 </div>
 </td>
@@ -1445,12 +1440,30 @@ tr.innerHTML = `
 <div class="action-btns">
 <button class="action-btn ai" onclick="generateForQuestion('${q.id}')" title="Сгенерировать ответ AI"><i class="ph ph-sparkle"></i> AI</button>
 <button class="action-btn template" onclick="showTemplateSelectForItem('${q.id}')" title="Выбрать шаблон"><i class="ph ph-files"></i> Шаблон</button>
+<button class="action-btn save" onclick="saveCurrentTextAsTemplate('${q.id}')" title="Сохранить текущий текст как шаблон"><i class="ph ph-floppy-disk"></i> Сохр.</button>
 ${hasResponse ? `<button class="action-btn send" onclick="sendSingleQuestionAnswer(state.questions.find(x=>x.id==='${q.id}'))" title="Отправить ответ"><i class="ph ph-paper-plane-right"></i> Отпр.</button>` : ''}
 </div>
 </td>
 `;
 tbody.appendChild(tr);
 });
+}
+
+function saveCurrentTextAsTemplate(id) {
+    const textarea = document.querySelector(`textarea[data-id="${id}"]`);
+    if (!textarea) return;
+    const text = textarea.value.trim();
+    if (!text) {
+        showToast('Нет текста для сохранения', 'error');
+        return;
+    }
+    const name = prompt('Введите название шаблона:', `Шаблон ${new Date().toLocaleTimeString()}`);
+    if (name) {
+        state.templates.push({ id: 'tmpl_' + Date.now(), name: name, text: text });
+        saveTemplatesToStorage();
+        renderTemplatesList();
+        showToast('Шаблон сохранён', 'success');
+    }
 }
 
 async function generateForReview(reviewId) {
