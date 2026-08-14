@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.19</title>
+    <title>Ozon Reviews AI Manager v.0.20</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
@@ -104,8 +104,8 @@
         .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
         .table-wrapper { overflow-x: auto; max-height: 70vh; position: relative; overflow-y: auto; }
-        table { border-collapse: separate; border-spacing: 0; width: 100%; table-layout: fixed; }
-        th { background: #fafbfc; color: var(--ozon-text); position: sticky; top: 0; z-index: 50; user-select: none; white-space: nowrap; padding: 12px 8px; border-bottom: 2px solid var(--ozon-border); box-shadow: 0 1px 3px rgba(16,21,31,0.04); font-weight: 600; font-size: 0.8rem; }
+        table { border-collapse: separate !important; border-spacing: 0 !important; width: 100%; table-layout: fixed; }
+        th { background: #fafbfc; color: var(--ozon-text); position: sticky !important; top: 0 !important; z-index: 50; user-select: none; white-space: nowrap; padding: 12px 8px; border-bottom: 2px solid var(--ozon-border); box-shadow: 0 1px 3px rgba(16,21,31,0.04); font-weight: 600; font-size: 0.8rem; }
         th .resize-handle { position: absolute; right: 0; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 20; }
         th .resize-handle:hover { background: rgba(0, 91, 255, 0.35); }
 
@@ -220,7 +220,7 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="brand-title text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.19
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.20
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
@@ -360,6 +360,14 @@
 </select>
 </div>
 <div class="flex items-center gap-2">
+<label class="text-xs text-slate-400">Медиа:</label>
+<select id="filterHasMedia" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-36" onchange="applyFilters()" title="Фильтр по наличию фото/видео в отзыве Ozon">
+<option value="all">Все</option>
+<option value="has">С медиа</option>
+<option value="no">Без медиа</option>
+</select>
+</div>
+<div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Дата:</label>
 <select id="sortDate" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-32" onchange="applyFilters()">
 <option value="desc">Новые</option>
@@ -376,7 +384,7 @@
 <div class="text-sm text-slate-700">Загрузка отзывов...</div>
 </div>
 </div>
-<table id="reviewsTable">
+<table id="reviewsTable" style="border-collapse: separate; border-spacing: 0;">
 <thead>
 <tr id="reviewsHead">
 <th style="width: 46px;">
@@ -467,7 +475,7 @@
 <div class="text-sm text-slate-700">Загрузка вопросов...</div>
 </div>
 </div>
-<table id="questionsTable">
+<table id="questionsTable" style="border-collapse: separate; border-spacing: 0;">
 <thead>
 <tr id="questionsHead">
 <th style="width: 46px;">
@@ -696,6 +704,25 @@
 </div>
 </div>
 
+<!-- Review Media (photo) Modal -->
+<div id="reviewPhotoModal" class="hidden modal-overlay" onclick="if(event.target===this) closeReviewPhotoModal()">
+<div class="modal-content" style="max-width: 720px;">
+<h3 class="text-lg font-semibold mb-4 flex items-center justify-between">
+<span><i class="ph ph-image mr-2 text-purple-400"></i>Фото из отзыва <span id="reviewPhotoCounter" class="text-xs text-slate-500 font-normal ml-2"></span></span>
+<button onclick="closeReviewPhotoModal()" class="text-xs text-slate-500 hover:text-red-600"><i class="ph ph-x"></i></button>
+</h3>
+<div class="flex items-center justify-center gap-2">
+<button onclick="showReviewPhoto(-1)" id="reviewPhotoPrev" class="btn px-2 py-2 glass rounded-lg text-sm"><i class="ph ph-caret-left"></i></button>
+<img id="reviewPhotoImg" src="" alt="Фото из отзыва" style="max-width: 100%; max-height: 65vh; border-radius: 8px; object-fit: contain;">
+<button onclick="showReviewPhoto(1)" id="reviewPhotoNext" class="btn px-2 py-2 glass rounded-lg text-sm"><i class="ph ph-caret-right"></i></button>
+</div>
+<div class="flex gap-2 justify-end mt-4">
+<button onclick="downloadUrl(document.getElementById('reviewPhotoImg').src, 'review_photo.jpg')" class="btn btn-primary px-4 py-2 rounded-lg text-white text-sm flex items-center"><i class="ph ph-download-simple mr-2"></i> Скачать фото</button>
+<button onclick="closeReviewPhotoModal()" class="btn px-4 py-2 glass rounded-lg text-sm">Закрыть</button>
+</div>
+</div>
+</div>
+
 <script>
 let state = {
 reviews: [],
@@ -788,7 +815,18 @@ closeAllSelectMenus();
 window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); repositionOpenSelectMenus(); }, true);
 window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); repositionOpenSelectMenus(); });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.19 - Review media (photos/videos), question author name in AI prompt, sticky-header hardening' });
+document.addEventListener('keydown', (e) => {
+if (e.key === 'Escape') {
+if (!document.getElementById('reviewPhotoModal').classList.contains('hidden')) closeReviewPhotoModal();
+if (!document.getElementById('reviewMediaModal').classList.contains('hidden')) closeReviewMediaModal();
+}
+if (!document.getElementById('reviewPhotoModal').classList.contains('hidden')) {
+if (e.key === 'ArrowLeft') showReviewPhoto(-1);
+if (e.key === 'ArrowRight') showReviewPhoto(1);
+}
+});
+
+addLog('info', 'Приложение запущено', { version: 'v.0.20 - Photo lightbox, bulletproof sticky header, media filter' });
 });
 
 function resetDailyCounter() {
@@ -1278,10 +1316,10 @@ return r._mediaFetchFailed
 }
 return `<span class="media-empty">—</span>`;
 }
-const photoThumbs = photos.map(url => `
-<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="media-thumb-link" title="Открыть фото">
+const photoThumbs = photos.map((url, pi) => `
+<div class="media-thumb-link" title="Открыть фото" onclick="openReviewPhoto('${r.id}', ${pi})">
 <img src="${escapeHtml(url)}" loading="lazy" alt="Фото из отзыва">
-</a>
+</div>
 `).join('');
 const videoThumbs = videos.map((v, vi) => `
 <div class="media-video-thumb" title="Воспроизвести видео" onclick="playReviewVideo('${r.id}', ${vi})">
@@ -1306,6 +1344,40 @@ const player = document.getElementById('reviewMediaVideo');
 player.pause();
 player.src = '';
 document.getElementById('reviewMediaModal').classList.add('hidden');
+}
+
+// ---- Photo lightbox (open on click, with prev/next between a review's own photos) ----
+let reviewPhotoState = { reviewId: null, index: 0 };
+
+function openReviewPhoto(reviewId, index) {
+const review = state.reviews.find(r => r.id === reviewId);
+if (!review || !review.photos || !review.photos[index]) return;
+reviewPhotoState = { reviewId, index };
+renderReviewPhotoModal();
+document.getElementById('reviewPhotoModal').classList.remove('hidden');
+}
+
+function showReviewPhoto(delta) {
+const review = state.reviews.find(r => r.id === reviewPhotoState.reviewId);
+if (!review) return;
+const total = review.photos.length;
+reviewPhotoState.index = (reviewPhotoState.index + delta + total) % total;
+renderReviewPhotoModal();
+}
+
+function renderReviewPhotoModal() {
+const review = state.reviews.find(r => r.id === reviewPhotoState.reviewId);
+if (!review) return;
+const total = review.photos.length;
+document.getElementById('reviewPhotoImg').src = review.photos[reviewPhotoState.index];
+document.getElementById('reviewPhotoCounter').textContent = total > 1 ? `${reviewPhotoState.index + 1} / ${total}` : '';
+const showArrows = total > 1;
+document.getElementById('reviewPhotoPrev').classList.toggle('hidden', !showArrows);
+document.getElementById('reviewPhotoNext').classList.toggle('hidden', !showArrows);
+}
+
+function closeReviewPhotoModal() {
+document.getElementById('reviewPhotoModal').classList.add('hidden');
 }
 
 // Downloads a URL as a file. Tries fetching it as a blob first (works for
@@ -1569,6 +1641,7 @@ function applyFiltersSafe() {
 try {
 const skuSearch = document.getElementById('searchSku')?.value?.trim().toLowerCase() || '';
 const hasTextSort = document.getElementById('sortHasText')?.value || 'all';
+const hasMediaFilter = document.getElementById('filterHasMedia')?.value || 'all';
 const dateSort = document.getElementById('sortDate')?.value || 'desc';
 const statusFilter = document.getElementById('filterStatus')?.value || 'ALL';
 
@@ -1590,6 +1663,12 @@ return ratingSet.has(reviewRating);
 
 if (hasTextSort === 'has') filtered = filtered.filter(r => r.text && r.text.trim().length > 0);
 else if (hasTextSort === 'no') filtered = filtered.filter(r => !r.text || r.text.trim().length === 0);
+
+// photos_amount/videos_amount come straight from /v2/review/list, so this
+// works immediately — it doesn't need to wait for the per-review media
+// fetch (photo/video URLs) to finish.
+if (hasMediaFilter === 'has') filtered = filtered.filter(r => (r.photos_amount || 0) > 0 || (r.videos_amount || 0) > 0);
+else if (hasMediaFilter === 'no') filtered = filtered.filter(r => (r.photos_amount || 0) === 0 && (r.videos_amount || 0) === 0);
 
 filtered.sort((a, b) => {
 const dateA = new Date(a.published_at).getTime() || 0;
