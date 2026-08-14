@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.17</title>
+    <title>Ozon Reviews AI Manager v.0.19</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
@@ -82,6 +82,8 @@
         body.dark select.format-select { background: #151b28; border-color: #2a3346; color: var(--ozon-text); }
         body.dark .log-entry:hover { background: rgba(255,255,255,0.03); }
         body.dark .progress-bar { background: #2a3346; }
+        body.dark .hover\:bg-slate-100:hover { background: rgba(255,255,255,0.06) !important; }
+        body.dark .bg-slate-50\/50 { background: rgba(255,255,255,0.04) !important; }
         body { font-family: 'Inter', sans-serif; background: var(--ozon-bg); color: var(--ozon-text); }
         .glass { background: var(--ozon-card); border: 1px solid var(--ozon-border); box-shadow: 0 1px 2px rgba(16, 21, 31, 0.04); }
         .btn { transition: all 0.2s ease; cursor: pointer; }
@@ -126,6 +128,15 @@
         .product-sku { color: var(--ozon-text-muted); font-size: 0.7rem; font-family: monospace; }
         .product-photo-img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--ozon-border); }
         .product-photo-placeholder { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f0f2f5; border-radius: 6px; border: 1px solid var(--ozon-border); color: #b3b9c4; }
+        .media-cell { display: flex; flex-wrap: wrap; gap: 4px; align-items: flex-start; max-width: 120px; }
+        .media-thumb-link, .media-video-thumb { position: relative; width: 32px; height: 32px; border-radius: 4px; overflow: hidden; border: 1px solid var(--ozon-border); flex-shrink: 0; cursor: pointer; display: block; }
+        .media-thumb-link img, .media-video-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .media-video-thumb .media-play-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.35); color: #fff; font-size: 16px; }
+        .media-empty { color: var(--ozon-text-muted); font-size: 0.7rem; }
+        .media-loading { color: var(--ozon-text-muted); font-size: 0.7rem; font-style: italic; }
+        .media-download-btn { width: 100%; margin-top: 2px; padding: 2px 4px; border-radius: 4px; font-size: 0.62rem; border: 1px solid var(--ozon-border); background: transparent; color: var(--ozon-text-muted); cursor: pointer; }
+        .media-download-btn:hover { background: var(--ozon-blue-light); color: var(--ozon-blue); border-color: var(--ozon-blue); }
+        #reviewMediaModal video { max-width: 100%; max-height: 70vh; border-radius: 8px; background: #000; }
         .response-input { min-height: 100px; width: 100%; resize: vertical; background: #fbfbfc; border: 1px solid #d7dbe3; color: var(--ozon-text); padding: 8px; border-radius: 6px; font-size: 0.85rem; }
         .response-input:focus { outline: none; border-color: var(--ozon-blue); box-shadow: 0 0 0 2px rgba(0, 91, 255, 0.15); }
         .response-input.gemini-filled { border-color: var(--ozon-green); background: var(--ozon-green-light); }
@@ -209,7 +220,7 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="brand-title text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.17
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.19
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
@@ -296,6 +307,7 @@
 <option value="NEW">Новые</option>
 <option value="VIEWED">Просмотренные</option>
 <option value="PROCESSED">Обработанные</option>
+<option value="UNPROCESSED">Необработанные</option>
 </select>
 </div>
 <div class="flex items-center gap-2">
@@ -387,12 +399,13 @@
 <th style="width: 80px;">Фото товара</th>
 <th style="width: 250px;">Товар</th>
 <th style="width: 100px;">Статус</th>
-<th style="width: 250px;">Текст отзыва</th>
-<th style="width: 350px;">Ответ</th>
+<th style="width: 220px;">Текст отзыва</th>
+<th style="width: 130px;">Медиа</th>
+<th style="width: 320px;">Ответ</th>
 </tr>
 </thead>
 <tbody id="reviewsBody">
-<tr><td colspan="9" class="text-center text-slate-500 py-10">Нажмите «Загрузить отзывы» для начала</td></tr>
+<tr><td colspan="10" class="text-center text-slate-500 py-10">Нажмите «Загрузить отзывы» для начала</td></tr>
 </tbody>
 </table>
 </div>
@@ -668,6 +681,21 @@
 </div>
 </div>
 
+<!-- Review Media (video) Modal -->
+<div id="reviewMediaModal" class="hidden modal-overlay" onclick="if(event.target===this) closeReviewMediaModal()">
+<div class="modal-content" style="max-width: 640px;">
+<h3 class="text-lg font-semibold mb-4 flex items-center justify-between">
+<span><i class="ph ph-play-circle mr-2 text-purple-400"></i>Видео из отзыва</span>
+<button onclick="closeReviewMediaModal()" class="text-xs text-slate-500 hover:text-red-600"><i class="ph ph-x"></i></button>
+</h3>
+<video id="reviewMediaVideo" controls autoplay style="width: 100%;"></video>
+<div class="flex gap-2 justify-end mt-4">
+<button onclick="downloadUrl(document.getElementById('reviewMediaVideo').src, 'review_video.mp4')" class="btn btn-primary px-4 py-2 rounded-lg text-white text-sm flex items-center"><i class="ph ph-download-simple mr-2"></i> Скачать видео</button>
+<button onclick="closeReviewMediaModal()" class="btn px-4 py-2 glass rounded-lg text-sm">Закрыть</button>
+</div>
+</div>
+</div>
+
 <script>
 let state = {
 reviews: [],
@@ -760,7 +788,7 @@ closeAllSelectMenus();
 window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); repositionOpenSelectMenus(); }, true);
 window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); repositionOpenSelectMenus(); });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.17 - Fix dark-mode dropdown triggers' });
+addLog('info', 'Приложение запущено', { version: 'v.0.19 - Review media (photos/videos), question author name in AI prompt, sticky-header hardening' });
 });
 
 function resetDailyCounter() {
@@ -831,8 +859,25 @@ updateStats();
 }
 
 function getOzonUrl(path) {
-const proxy = document.getElementById('ozonCorsProxy').value;
-return proxy ? `${proxy}https://api-seller.ozon.ru${path}` : `https://api-seller.ozon.ru${path}`;
+const target = `https://api-seller.ozon.ru${path}`;
+const proxy = document.getElementById('ozonCorsProxy').value.trim();
+if (!proxy) return target;
+
+// corsproxy.io expects the target as a `url=` query parameter
+// (https://corsproxy.io/?url=<encoded-target>). Naively concatenating the
+// target after the domain — which is what a plain string prefix produces —
+// is not the documented format and can cause the proxy to mishandle the
+// POST body, silently dropping filters/pagination while still returning
+// a 200 response with unfiltered data. Normalize to the documented form
+// regardless of whether the person included the trailing "?url=" themselves.
+if (/corsproxy\.io/i.test(proxy)) {
+const base = proxy.replace(/\/?(\?(url=)?)?$/i, '');
+return `${base}/?url=${encodeURIComponent(target)}`;
+}
+
+// Generic prefix-style proxy (e.g. a custom Cloudflare Worker/relay) —
+// keep the simple concatenation behaviour other proxies rely on.
+return proxy.endsWith('/') || proxy.endsWith('=') ? `${proxy}${target}` : `${proxy}/${target}`;
 }
 
 function getAuthHeaders() {
@@ -1178,6 +1223,134 @@ renderQuestionsTable();
 addLog('info', 'Загрузка описаний товаров завершена', { loaded: uniqueSkus.length });
 }
 
+// ---- Review media (photos/videos) ----
+// The list endpoint (/v2/review/list) only returns *counts* of photos/videos,
+// not the files themselves — actual URLs require one /v2/review/info call
+// per review (there's no batch variant in the Ozon API). So we only fetch
+// for reviews that actually report photos_amount/videos_amount > 0, and only
+// once per review (skipped on repeat calls / re-renders).
+async function fetchReviewMedia() {
+const targets = state.reviews.filter(r =>
+(r.photos_amount > 0 || r.videos_amount > 0) &&
+r.photos.length === 0 && r.videos.length === 0 && !r._mediaFetchFailed
+);
+if (targets.length === 0) return;
+
+addLog('info', `Загрузка медиа (фото/видео) для ${targets.length} отзывов`);
+for (let i = 0; i < targets.length; i++) {
+const r = targets[i];
+updateProgress(i, targets.length, `Загрузка медиа отзывов: ${i + 1}/${targets.length}...`);
+try {
+const res = await fetch(getOzonUrl('/v2/review/info'), {
+method: 'POST',
+headers: getAuthHeaders(),
+body: JSON.stringify({ review_id: r.id })
+});
+if (res.ok) {
+const data = await res.json();
+r.photos = (data.photos || []).map(p => p.url).filter(Boolean);
+r.videos = (data.videos || []).map(v => ({ url: v.url, preview_url: v.preview_url || v.short_video_preview_url || v.url })).filter(v => v.url);
+} else {
+r._mediaFetchFailed = true;
+addLog('error', `Не удалось получить медиа отзыва ${r.id.substring(0, 8)}`, { status: res.status });
+}
+} catch (e) {
+r._mediaFetchFailed = true;
+addLog('error', `Ошибка загрузки медиа отзыва ${r.id.substring(0, 8)}`, e.message);
+}
+// Stay comfortably under Ozon's 50 req/sec-per-client cap even if other
+// requests (product descriptions, etc.) are running concurrently.
+await sleep(150);
+if (i % 10 === 9 || i === targets.length - 1) renderReviewsTable();
+}
+hideProgress();
+addLog('info', 'Загрузка медиа отзывов завершена');
+}
+
+function buildReviewMediaCell(r) {
+const photos = r.photos || [];
+const videos = r.videos || [];
+if (photos.length === 0 && videos.length === 0) {
+if (r.photos_amount > 0 || r.videos_amount > 0) {
+return r._mediaFetchFailed
+? `<span class="media-empty">Не удалось загрузить</span>`
+: `<span class="media-loading">Загрузка...</span>`;
+}
+return `<span class="media-empty">—</span>`;
+}
+const photoThumbs = photos.map(url => `
+<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="media-thumb-link" title="Открыть фото">
+<img src="${escapeHtml(url)}" loading="lazy" alt="Фото из отзыва">
+</a>
+`).join('');
+const videoThumbs = videos.map((v, vi) => `
+<div class="media-video-thumb" title="Воспроизвести видео" onclick="playReviewVideo('${r.id}', ${vi})">
+<img src="${escapeHtml(v.preview_url)}" loading="lazy" alt="Видео из отзыва">
+<span class="media-play-icon"><i class="ph ph-play-fill"></i></span>
+</div>
+`).join('');
+return `<div class="media-cell">${photoThumbs}${videoThumbs}<button class="media-download-btn" onclick="downloadReviewMedia('${r.id}')" title="Скачать все фото и видео отзыва"><i class="ph ph-download-simple"></i> Скачать</button></div>`;
+}
+
+function playReviewVideo(reviewId, index) {
+const review = state.reviews.find(r => r.id === reviewId);
+const video = review?.videos?.[index];
+if (!video) return;
+const player = document.getElementById('reviewMediaVideo');
+player.src = video.url;
+document.getElementById('reviewMediaModal').classList.remove('hidden');
+}
+
+function closeReviewMediaModal() {
+const player = document.getElementById('reviewMediaVideo');
+player.pause();
+player.src = '';
+document.getElementById('reviewMediaModal').classList.add('hidden');
+}
+
+// Downloads a URL as a file. Tries fetching it as a blob first (works for
+// same-origin or CORS-enabled CDNs, and gives a real "Скачать файл" dialog
+// with our chosen filename); falls back to opening it in a new tab if the
+// CDN doesn't allow cross-origin fetch, so the person can still save it
+// manually via the browser's own "Save as".
+async function downloadUrl(url, filename) {
+if (!url) return;
+try {
+const res = await fetch(url);
+if (!res.ok) throw new Error('HTTP ' + res.status);
+const blob = await res.blob();
+const objectUrl = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = objectUrl;
+a.download = filename;
+a.click();
+URL.revokeObjectURL(objectUrl);
+} catch (e) {
+addLog('info', `Прямое скачивание недоступно (CORS), открываю в новой вкладке: ${filename}`, e.message);
+window.open(url, '_blank');
+}
+}
+
+async function downloadReviewMedia(reviewId) {
+const review = state.reviews.find(r => r.id === reviewId);
+if (!review) return;
+const shortId = review.id.substring(0, 8);
+let n = 0;
+for (const url of (review.photos || [])) {
+n++;
+await downloadUrl(url, `review_${shortId}_photo_${n}.jpg`);
+await sleep(300);
+}
+let vi = 0;
+for (const v of (review.videos || [])) {
+vi++;
+await downloadUrl(v.url, `review_${shortId}_video_${vi}.mp4`);
+await sleep(300);
+}
+if (n === 0 && vi === 0) showToast('У этого отзыва нет медиа', 'info');
+else showToast(`Скачивание: ${n} фото, ${vi} видео`, 'success');
+}
+
 async function fetchReviews(append = false) {
 const clientId = document.getElementById('ozonClientId').value;
 const apiKey = document.getElementById('ozonApiKey').value;
@@ -1216,7 +1389,7 @@ if (state.lastReviewId && state.lastReviewId.trim() !== '') {
 requestBody.last_id = state.lastReviewId;
 }
 
-addLog('request', `Загрузка отзывов (стр ${page + 1})`, { url: '/v2/review/list', body: requestBody });
+addLog('request', `Загрузка отзывов (стр ${page + 1})`, { resolved_url: getOzonUrl('/v2/review/list'), body: requestBody });
 
 const res = await fetch(getOzonUrl('/v2/review/list'), {
 method: 'POST',
@@ -1272,6 +1445,7 @@ addLog('info', 'Загрузка отзывов завершена', { total: st
 
 const skus = state.reviews.map(r => r.sku);
 fetchProductDescriptions(skus).catch(e => addLog('error', 'Ошибка загрузки описаний', e.message));
+fetchReviewMedia().catch(e => addLog('error', 'Ошибка загрузки медиа отзывов', e.message));
 
 } catch (e) {
 addLog('error', 'Ошибка загрузки отзывов', e.message);
@@ -1323,7 +1497,7 @@ if (state.lastQuestionId && state.lastQuestionId.trim() !== '') {
 requestBody.last_id = state.lastQuestionId;
 }
 
-addLog('request', `Загрузка вопросов (стр ${page + 1})`, { url: '/v1/question/list', body: requestBody });
+addLog('request', `Загрузка вопросов (стр ${page + 1})`, { resolved_url: getOzonUrl('/v1/question/list'), body: requestBody });
 
 const res = await fetch(getOzonUrl('/v1/question/list'), {
 method: 'POST',
@@ -1488,7 +1662,7 @@ updateStats();
 function renderReviewsTable() {
 const tbody = document.getElementById('reviewsBody');
 if (state.filteredReviews.length === 0) {
-tbody.innerHTML = '<tr><td colspan="9" class="text-center text-slate-500 py-8">Нет отзывов по заданным фильтрам</td></tr>';
+tbody.innerHTML = '<tr><td colspan="10" class="text-center text-slate-500 py-8">Нет отзывов по заданным фильтрам</td></tr>';
 return;
 }
 const fragment = document.createDocumentFragment();
@@ -1504,6 +1678,7 @@ let statusBadgeClass = 'badge-new';
 let statusText = 'Новый';
 if (r.status === 'VIEWED') { statusBadgeClass = 'badge-viewed'; statusText = 'Просмотрен'; }
 else if (r.status === 'PROCESSED') { statusBadgeClass = 'badge-processed'; statusText = 'Отвечено'; }
+else if (r.status === 'UNPROCESSED') { statusBadgeClass = 'badge-unprocessed'; statusText = 'Не обработан'; }
 
 const prod = state.productDescriptions[String(r.sku)];
 let photoHtml = '';
@@ -1521,6 +1696,8 @@ ${prod.description ? `<div class="product-desc">${escapeHtml(prod.description)}<
 </div>
 ` : `<div class="product-sku">Ozon ID: ${r.sku}</div>`;
 
+const mediaHtml = buildReviewMediaCell(r);
+
 tr.innerHTML = `
 <td><input type="checkbox" class="checkbox-custom" ${state.selectedIds.has(r.id) ? 'checked' : ''} onchange="toggleSelect('${r.id}')"></td>
 <td class="text-xs text-slate-400">${dateStr}</td>
@@ -1530,6 +1707,7 @@ tr.innerHTML = `
 <td>${prodHtml}</td>
 <td><span class="status-badge ${statusBadgeClass}">${statusText}</span></td>
 <td><div class="review-text text-slate-700">${r.text ? escapeHtml(r.text) : '<span class="text-slate-500 italic">Без текста</span>'}</div></td>
+<td>${mediaHtml}</td>
 <td>
 <textarea class="${taClass}" data-id="${r.id}" placeholder="Введите ответ..." onchange="updateResponse('${r.id}', this.value)">${escapeHtml(r.response || '')}</textarea>
 <div class="action-btns">
@@ -1590,7 +1768,7 @@ tr.innerHTML = `
 <td class="text-xs font-mono">${q.sku}</td>
 <td>${photoHtml}</td>
 <td>${prodHtml}</td>
-<td><div class="author-name">${escapeHtml(q.author_name)}</div>${linkHtml}</td>
+<td><div class="author-name">Покупатель: ${escapeHtml(q.author_name)}</div>${linkHtml}</td>
 <td><span class="status-badge ${statusBadgeClass}">${statusText}</span></td>
 <td><div class="review-text text-slate-700">${q.text ? escapeHtml(q.text) : '<span class="text-slate-500 italic">Без текста</span>'}</div><div class="answers-count">Ответов: ${q.answers_count}</div></td>
 <td>
@@ -1671,8 +1849,14 @@ function buildReviewPrompt(review, template) {
 return `${template}\n${buildProductInfoBlock(review.sku)}\nОтзыв:\nОценка: ${review.rating}/5\nТекст: ${review.text || 'Без текста'}\nНапиши ответ:`;
 }
 
+const GENERIC_AUTHOR_NAMES = new Set(['пользователь ozon', 'аноним', 'anonymous', '']);
+
 function buildQuestionPrompt(question, template) {
-return `${template}\n${buildProductInfoBlock(question.sku)}\nВопрос покупателя:\n${question.text || 'Без текста'}\nНапиши ответ:`;
+const authorName = (question.author_name || '').trim();
+const nameLine = authorName && !GENERIC_AUTHOR_NAMES.has(authorName.toLowerCase())
+? `Имя покупателя: ${authorName} (можешь обратиться по имени, если уместно)\n`
+: '';
+return `${template}\n${buildProductInfoBlock(question.sku)}\n${nameLine}Вопрос покупателя:\n${question.text || 'Без текста'}\nНапиши ответ:`;
 }
 
 // Single point of contact with the Gemini API. Sends the key as a header
@@ -2060,7 +2244,7 @@ let data;
 if (state.currentTab === 'reviews') {
 data = state.filteredReviews.map(r => {
 const prod = state.productDescriptions[String(r.sku)];
-return { id: r.id, sku: r.sku, product_name: prod?.name || '', offer_id: prod?.offer_id || '', rating: r.rating, text: r.text, published_at: r.published_at, status: r.status, response: r.response || '' };
+return { id: r.id, sku: r.sku, product_name: prod?.name || '', offer_id: prod?.offer_id || '', rating: r.rating, text: r.text, published_at: r.published_at, status: r.status, response: r.response || '', photo_urls: (r.photos || []).join('; '), video_urls: (r.videos || []).map(v => v.url).join('; ') };
 });
 } else {
 data = state.filteredQuestions.map(q => {
