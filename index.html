@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.20</title>
+    <title>Ozon Reviews AI Manager v.0.22</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
@@ -220,7 +220,7 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="brand-title text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.20
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.22
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
@@ -587,11 +587,11 @@
 </div>
 <div>
 <label class="text-xs text-slate-400 block mb-1">Промпт для отзывов</label>
-<textarea id="geminiPromptTemplate" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты — помощник продавца на Ozon. Напиши вежливый, профессиональный ответ на отзыв покупателя, всегда старайся разобраться в ситуации. Всегда упоминай товар конкретный товар в тексте отзыва, чтобы улучшать SEO карточки. Учитывай рейтинг: если 4-5 звезд — поблагодари, если 3 — нейтрально-вежливый, если 1-2 — извинись и предложи решение. Ответ должен быть на русском языке, длиной не более 2 предложения. Никогда не используй символ —.</textarea>
+<textarea id="geminiPromptTemplate" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты - помощник продавца на Ozon. Напиши вежливый, профессиональный ответ на отзыв покупателя, всегда старайся разобраться в ситуации. Всегда упоминай конкретный товар в тексте отзыва, чтобы улучшать SEO карточки. Учитывай рейтинг: 4-5 звезд — поблагодари, 3 — нейтрально-вежливый, 1-2 — извинись и предложи решение исходя из отзыва и товара. Если "нет носика / насадки" - скажи, что сам Озон теряет их при доставке. Если проблемы с упаковкой - скажи, что уже ввели доп. упаковку товара. Если маленький объем, пиши, что соответствует указанному в карточке. Ответ должен быть на русском языке, длиной не более 3 предложений. Никогда не предлагай перейти в чат, предлагай дополнить отзыв деталями. Никогда не используй символ —.</textarea>
 </div>
 <div>
 <label class="text-xs text-slate-400 block mb-1">Промпт для вопросов</label>
-<textarea id="geminiPromptQuestions" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты — помощник продавца на Ozon. Ответь на вопрос покупателя о товаре вежливо, профессионально и информативно. Всегда упоминай конкретный товар. Ответ должен быть на русском языке, длиной не более 2-3 предложений. Никогда не используй символ —. Если вопрос о характеристиках, размере, цвете — дай точный ответ.</textarea>
+<textarea id="geminiPromptQuestions" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты — помощник продавца на Ozon. Ответь на вопрос покупателя о товаре вежливо, профессионально и информативно. Всегда упоминай название конкретного товара. Не упоминай ID. Старайся разобраться в проблеме и дать реалистичный ответ. Ответ должен быть на русском языке, длиной не более 4 предложений. Никогда не используй символ —.</textarea>
 </div>
 <div class="pt-2 flex gap-2">
 <button onclick="testGeminiConnection()" class="btn btn-gemini px-4 py-2 rounded text-white text-sm">
@@ -826,7 +826,7 @@ if (e.key === 'ArrowRight') showReviewPhoto(1);
 }
 });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.20 - Photo lightbox, bulletproof sticky header, media filter' });
+addLog('info', 'Приложение запущено', { version: 'v.0.22 - Reviews with no written response stay visible instead of vanishing' });
 });
 
 function resetDailyCounter() {
@@ -2049,13 +2049,32 @@ let retryCount = 0;
 while (retryCount < maxRetries) {
 try {
 if (!review.text || review.text.trim().length === 0) {
-addLog('info', `Отзыв ${review.id.substring(0, 8)} без текста. Меняю статус на PROCESSED локально.`);
+// Ozon rejects /v1/review/comment/create on a review with no text (there's
+// nothing to comment on), but the review still needs to be marked as
+// handled on Ozon's side — not just in our local state — or it will keep
+// showing up as NEW/unprocessed next time you load reviews from the API.
+const requestBody = { review_ids: [review.id], status: 'PROCESSED' };
+addLog('request', `Отзыв ${review.id.substring(0, 8)} без текста — меняю статус на Ozon через change-status`, requestBody);
+
+const res = await fetch(getOzonUrl('/v2/review/change-status'), {
+method: 'POST',
+headers: getAuthHeaders(),
+body: JSON.stringify(requestBody)
+});
+
+if (res.ok) {
 review.status = 'PROCESSED';
 state.reviews = state.reviews.filter(r => r.id !== review.id);
 state.selectedIds.delete(review.id);
 renderReviewsTable();
 updateStats();
-return;
+addLog('response', `Статус отзыва ${review.id.substring(0, 8)} обновлён на Ozon (PROCESSED)`);
+return 'sent';
+} else {
+const errBody = await res.json().catch(() => ({}));
+addLog('error', `Не удалось сменить статус отзыва ${review.id.substring(0, 8)} на Ozon`, { status: res.status, body: errBody });
+throw new Error(errBody.message || `Ошибка смены статуса (HTTP ${res.status})`);
+}
 }
 
 if (review.response && review.response.trim().length > 0) {
@@ -2096,16 +2115,12 @@ state.reviews = state.reviews.filter(r => r.id !== review.id);
 state.selectedIds.delete(review.id);
 renderReviewsTable();
 updateStats();
-return;
+return 'sent';
 }
 
-addLog('info', `Отзыв ${review.id.substring(0, 8)} без ответа. Пропускаем.`);
-review.status = 'PROCESSED';
-state.reviews = state.reviews.filter(r => r.id !== review.id);
-state.selectedIds.delete(review.id);
-renderReviewsTable();
-updateStats();
-return;
+addLog('info', `Отзыв ${review.id.substring(0, 8)}: текст есть, но ответ не написан — пропускаем, отзыв остаётся в таблице`);
+showToast('У этого отзыва есть текст, но нет написанного ответа — он остался в таблице', 'info');
+return 'skipped';
 
 } catch (e) {
 addLog('error', `Ошибка отправки ${review.id.substring(0,8)}`, e.message);
@@ -2390,7 +2405,7 @@ document.getElementById('btnSend').classList.add('hidden');
 document.getElementById('btnCancel').classList.remove('hidden');
 document.getElementById('btnCancel').disabled = false;
 
-let sent = 0, err = 0, cancelled = 0;
+let sent = 0, skipped = 0, err = 0, cancelled = 0;
 
 for (let i = 0; i < toSend.length; i++) {
 if (state.isSendingCancelled) {
@@ -2401,9 +2416,9 @@ break;
 
 const r = toSend[i];
 try {
-updateProgress(sent + err, toSend.length, `Отправка ${r.id.substring(0, 8)}... (${i + 1}/${toSend.length})`);
-await sendSingleResponseToOzon(r);
-sent++;
+updateProgress(sent + err + skipped, toSend.length, `Отправка ${r.id.substring(0, 8)}... (${i + 1}/${toSend.length})`);
+const result = await sendSingleResponseToOzon(r);
+if (result === 'skipped') skipped++; else sent++;
 renderReviewsTable();
 } catch (e) { 
 err++; 
@@ -2414,14 +2429,18 @@ addLog('error', `Ошибка отправки ${r.id.substring(0,8)}`, e.messag
 applyFilters(); 
 hideProgress();
 
-state.selectedIds.clear();
+// Reviews that were actually sent already had their id removed from
+// selectedIds inside sendSingleResponseToOzon; reviews that were skipped
+// (text but no response yet) or failed were left selected on purpose, so
+// they stay easy to find and finish instead of getting lost in the table.
 document.getElementById('btnSend').classList.remove('hidden');
 document.getElementById('btnCancel').classList.add('hidden');
 
 let msg = `Отправлено: ${sent} | Ошибки: ${err}`;
+if (skipped > 0) msg += ` | Пропущено (нет ответа): ${skipped}`;
 if (cancelled > 0) msg += ` | Отменено: ${cancelled}`;
-showToast(msg, sent > 0 ? 'success' : 'error');
-addLog('info', 'Отправка отзывов завершена', { sent, err, cancelled });
+showToast(msg, sent > 0 || skipped > 0 ? (err > 0 ? 'info' : 'success') : 'error');
+addLog('info', 'Отправка отзывов завершена', { sent, skipped, err, cancelled });
 updateStats();
 } else {
 if (state.selectedQuestionIds.size === 0) return showToast('Выберите вопросы', 'error');
