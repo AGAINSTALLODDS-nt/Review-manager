@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.15</title>
+    <title>Ozon Reviews AI Manager v.0.16</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
@@ -27,6 +27,55 @@
             --ozon-red-light: #fde8ea;
             --ozon-purple: #7c3aed;
         }
+        /* Dark theme: same custom properties re-pointed to dark values, toggled via body.dark */
+        body.dark {
+            --ozon-blue: #3b82f6;
+            --ozon-blue-dark: #2563eb;
+            --ozon-blue-light: rgba(59, 130, 246, 0.16);
+            --ozon-bg: #0f1420;
+            --ozon-card: #1a2233;
+            --ozon-border: #2a3346;
+            --ozon-text: #e7ebf3;
+            --ozon-text-muted: #8b95a8;
+            --ozon-green: #22c55e;
+            --ozon-green-light: rgba(34, 197, 94, 0.16);
+            --ozon-amber: #f59e0b;
+            --ozon-amber-light: rgba(245, 158, 11, 0.16);
+            --ozon-red: #f87171;
+            --ozon-red-light: rgba(248, 113, 113, 0.16);
+            --ozon-purple: #a78bfa;
+        }
+        /* Tailwind utility classes hardcode literal colors and don't follow CSS
+           variables, so the handful used inline for labels/inputs/icons need
+           explicit dark-mode overrides here rather than per-element edits. */
+        body.dark th { background: #151b28; }
+        body.dark tr:hover td { background: rgba(255, 255, 255, 0.03); }
+        body.dark .loading-overlay { background: rgba(15, 20, 32, 0.85); }
+        body.dark .modal-overlay { background: rgba(0, 0, 0, 0.6); }
+        body.dark select, body.dark input[type=text], body.dark input[type=password],
+        body.dark input[type=number], body.dark textarea:not(.response-input) {
+            background: #151b28 !important; border-color: #2a3346 !important; color: var(--ozon-text);
+        }
+        body.dark .text-slate-400, body.dark .text-slate-500 { color: #8b95a8 !important; }
+        body.dark .text-slate-700, body.dark .text-slate-800 { color: #e7ebf3 !important; }
+        body.dark .bg-slate-50 { background: #151b28 !important; }
+        body.dark .border-slate-300 { border-color: #2a3346 !important; }
+        body.dark .text-blue-400 { color: #60a5fa !important; }
+        body.dark .text-blue-300 { color: #93c5fd !important; }
+        body.dark .text-blue-700 { color: #60a5fa !important; }
+        body.dark .text-purple-400 { color: #c4b5fd !important; }
+        body.dark .text-amber-600 { color: #fbbf24 !important; }
+        body.dark .text-red-600 { color: #f87171 !important; }
+        body.dark .text-red-700:hover, body.dark .hover\:text-red-700:hover { color: #fca5a5 !important; }
+        body.dark .text-red-800:hover, body.dark .hover\:text-red-800:hover { color: #fca5a5 !important; }
+        body.dark h1.brand-title { background-image: linear-gradient(to right, #60a5fa, #c4b5fd); }
+        body.dark .response-input { background: #151b28; border-color: #2a3346; color: var(--ozon-text); }
+        body.dark .response-input.gemini-filled { background: var(--ozon-green-light); border-color: var(--ozon-green); }
+        body.dark .product-photo-placeholder { background: #151b28; border-color: #2a3346; color: #4b5568; }
+        body.dark .json-viewer { background: #0f1420; border-color: #2a3346; }
+        body.dark .template-card { background: #1a2233; border-color: #2a3346; }
+        body.dark .multi-select-dropdown { background: #1a2233; border-color: #2a3346; }
+        body.dark .action-btn { background: #151b28; border-color: #2a3346; }
         body { font-family: 'Inter', sans-serif; background: var(--ozon-bg); color: var(--ozon-text); }
         .glass { background: var(--ozon-card); border: 1px solid var(--ozon-border); box-shadow: 0 1px 2px rgba(16, 21, 31, 0.04); }
         .btn { transition: all 0.2s ease; cursor: pointer; }
@@ -47,7 +96,7 @@
         .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
         .table-wrapper { overflow-x: auto; max-height: 70vh; position: relative; overflow-y: auto; }
-        table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+        table { border-collapse: separate; border-spacing: 0; width: 100%; table-layout: fixed; }
         th { background: #fafbfc; color: var(--ozon-text); position: sticky; top: 0; z-index: 50; user-select: none; white-space: nowrap; padding: 12px 8px; border-bottom: 2px solid var(--ozon-border); box-shadow: 0 1px 3px rgba(16,21,31,0.04); font-weight: 600; font-size: 0.8rem; }
         th .resize-handle { position: absolute; right: 0; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 20; }
         th .resize-handle:hover { background: rgba(0, 91, 255, 0.35); }
@@ -153,12 +202,15 @@
 <div class="max-w-[98%] mx-auto px-4 py-6">
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
-<h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.15
+<h1 class="brand-title text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center">
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.16
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
 <div class="flex gap-2 flex-wrap items-center">
+<button onclick="toggleTheme()" class="btn px-4 py-2 glass rounded-lg text-sm flex items-center hover:bg-slate-100 transition" title="Переключить тему">
+<i class="ph ph-moon mr-2" id="themeToggleIcon"></i> <span id="themeToggleLabel">Тёмная тема</span>
+</button>
 <button onclick="switchTab('settings')" class="btn px-4 py-2 glass rounded-lg text-sm flex items-center hover:bg-slate-100 transition">
 <i class="ph ph-gear mr-2"></i> Настройки
 </button>
@@ -233,7 +285,7 @@
 <div class="flex-1"></div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Статус:</label>
-<select id="filterStatus" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none" onchange="applyFilters()">
+<select id="filterStatus" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none" onchange="applyFilters()" title="Статус учитывается и при следующей загрузке — так вы не тянете лишние данные">
 <option value="ALL" selected>Все</option>
 <option value="NEW">Новые</option>
 <option value="VIEWED">Просмотренные</option>
@@ -309,7 +361,20 @@
 <table id="reviewsTable">
 <thead>
 <tr id="reviewsHead">
-<th style="width: 40px;"><input type="checkbox" id="selectAll" class="checkbox-custom" onchange="toggleSelectAll(this.checked)"></th>
+<th style="width: 46px;">
+<div class="multi-select-wrapper">
+<div class="multi-select-trigger" id="selectMenuTrigger_reviews" onclick="toggleSelectMenu('reviews')" title="Выделение">
+<i class="ph ph-list-checks"></i>
+</div>
+<div class="multi-select-dropdown" id="selectMenuDropdown_reviews">
+<div class="multi-select-option" onclick="applySelectMenuAction('reviews','all')"><span>Выбрать все</span></div>
+<div class="multi-select-option" onclick="applySelectMenuAction('reviews','withResponse')"><span>С ответами</span></div>
+<div class="multi-select-option" onclick="applySelectMenuAction('reviews','withoutResponse')"><span>Без ответов</span></div>
+<div class="multi-select-divider"></div>
+<div class="multi-select-option" onclick="applySelectMenuAction('reviews','none')"><span>Убрать выделение</span></div>
+</div>
+</div>
+</th>
 <th style="width: 70px;">Дата</th>
 <th style="width: 60px;">Ozon ID</th>
 <th style="width: 45px;">Оценка</th>
@@ -346,7 +411,7 @@
 <div class="flex-1"></div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Статус:</label>
-<select id="filterQuestionStatus" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none" onchange="applyQuestionFilters()">
+<select id="filterQuestionStatus" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none" onchange="applyQuestionFilters()" title="Статус учитывается и при следующей загрузке — так вы не тянете лишние данные">
 <option value="ALL" selected>Все</option>
 <option value="NEW">Новые</option>
 <option value="VIEWED">Просмотренные</option>
@@ -386,7 +451,20 @@
 <table id="questionsTable">
 <thead>
 <tr id="questionsHead">
-<th style="width: 40px;"><input type="checkbox" id="selectAllQuestions" class="checkbox-custom" onchange="toggleSelectAllQuestions(this.checked)"></th>
+<th style="width: 46px;">
+<div class="multi-select-wrapper">
+<div class="multi-select-trigger" id="selectMenuTrigger_questions" onclick="toggleSelectMenu('questions')" title="Выделение">
+<i class="ph ph-list-checks"></i>
+</div>
+<div class="multi-select-dropdown" id="selectMenuDropdown_questions">
+<div class="multi-select-option" onclick="applySelectMenuAction('questions','all')"><span>Выбрать все</span></div>
+<div class="multi-select-option" onclick="applySelectMenuAction('questions','withResponse')"><span>С ответами</span></div>
+<div class="multi-select-option" onclick="applySelectMenuAction('questions','withoutResponse')"><span>Без ответов</span></div>
+<div class="multi-select-divider"></div>
+<div class="multi-select-option" onclick="applySelectMenuAction('questions','none')"><span>Убрать выделение</span></div>
+</div>
+</div>
+</th>
 <th style="width: 70px;">Дата</th>
 <th style="width: 60px;">Ozon ID</th>
 <th style="width: 80px;">Фото товара</th>
@@ -638,7 +716,23 @@ timer = setTimeout(() => fn(...args), delay);
 const applyFiltersDebounced = debounce(() => applyFilters(), 250);
 const applyQuestionFiltersDebounced = debounce(() => applyQuestionFilters(), 250);
 
+// ---- Theme (light/dark) ----
+function applyTheme(theme) {
+document.body.classList.toggle('dark', theme === 'dark');
+const icon = document.getElementById('themeToggleIcon');
+const label = document.getElementById('themeToggleLabel');
+if (icon) icon.className = theme === 'dark' ? 'ph ph-sun mr-2' : 'ph ph-moon mr-2';
+if (label) label.textContent = theme === 'dark' ? 'Светлая тема' : 'Тёмная тема';
+}
+function toggleTheme() {
+const current = localStorage.getItem('ui_theme') || 'light';
+const next = current === 'dark' ? 'light' : 'dark';
+localStorage.setItem('ui_theme', next);
+applyTheme(next);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+applyTheme(localStorage.getItem('ui_theme') || 'light');
 loadSettings();
 loadTemplates();
 loadProductDescriptionsFromStorage();
@@ -653,13 +747,14 @@ updateDailyCounterDisplay();
 document.addEventListener('click', (e) => {
 if (!e.target.closest('.multi-select-wrapper')) {
 closeRatingDropdown();
+closeAllSelectMenus();
 }
 });
 
-window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); }, true);
-window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); });
+window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); repositionOpenSelectMenus(); }, true);
+window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); repositionOpenSelectMenus(); });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.15 - Ozon UI, security & perf refactor' });
+addLog('info', 'Приложение запущено', { version: 'v.0.16 - Dark theme, status-filtered loading, select menu, sticky header fix' });
 });
 
 function resetDailyCounter() {
@@ -1098,6 +1193,7 @@ state.selectedIds.clear();
 const limit = 100;
 const sortDir = document.getElementById('sortDate').value === 'asc' ? 'ASC' : 'DESC';
 const maxPages = parseInt(document.getElementById('maxPages').value) || 5;
+const statusFilter = document.getElementById('filterStatus').value;
 
 try {
 let page = 0;
@@ -1106,8 +1202,9 @@ while (page < maxPages) {
 const requestBody = {
 limit: limit,
 sort_dir: sortDir,
-filters: {} 
+filters: {}
 };
+if (statusFilter && statusFilter !== 'ALL') requestBody.filters.status = statusFilter;
 
 if (state.lastReviewId && state.lastReviewId.trim() !== '') {
 requestBody.last_id = state.lastReviewId;
@@ -1203,6 +1300,7 @@ state.selectedQuestionIds.clear();
 const limit = 100;
 const sortDir = document.getElementById('sortQuestionDate').value === 'asc' ? 'ASC' : 'DESC';
 const maxPages = parseInt(document.getElementById('maxPages').value) || 5;
+const statusFilter = document.getElementById('filterQuestionStatus').value;
 
 try {
 let page = 0;
@@ -1213,6 +1311,7 @@ limit: limit,
 sort_dir: sortDir,
 filter: {}
 };
+if (statusFilter && statusFilter !== 'ALL') requestBody.filter.status = statusFilter;
 
 if (state.lastQuestionId && state.lastQuestionId.trim() !== '') {
 requestBody.last_id = state.lastQuestionId;
@@ -1684,6 +1783,9 @@ if (!review.text || review.text.trim().length === 0) {
 addLog('info', `Отзыв ${review.id.substring(0, 8)} без текста. Меняю статус на PROCESSED локально.`);
 review.status = 'PROCESSED';
 state.reviews = state.reviews.filter(r => r.id !== review.id);
+state.selectedIds.delete(review.id);
+renderReviewsTable();
+updateStats();
 return;
 }
 
@@ -1722,12 +1824,18 @@ addLog('response', `Ответ успешно отправлен на отзыв
 
 review.status = 'PROCESSED';
 state.reviews = state.reviews.filter(r => r.id !== review.id);
+state.selectedIds.delete(review.id);
+renderReviewsTable();
+updateStats();
 return;
 }
 
 addLog('info', `Отзыв ${review.id.substring(0, 8)} без ответа. Пропускаем.`);
 review.status = 'PROCESSED';
 state.reviews = state.reviews.filter(r => r.id !== review.id);
+state.selectedIds.delete(review.id);
+renderReviewsTable();
+updateStats();
 return;
 
 } catch (e) {
@@ -1755,6 +1863,9 @@ addLog('info', `Вопрос ${question.id.substring(0, 8)} без ответа.
 await changeQuestionStatus(question.id, 'PROCESSED');
 question.status = 'PROCESSED';
 state.questions = state.questions.filter(q => q.id !== question.id);
+state.selectedQuestionIds.delete(question.id);
+renderQuestionsTable();
+updateStats();
 return;
 }
 
@@ -1793,6 +1904,9 @@ addLog('response', `Ответ на вопрос успешно отправле
 await changeQuestionStatus(question.id, 'PROCESSED');
 question.status = 'PROCESSED';
 state.questions = state.questions.filter(q => q.id !== question.id);
+state.selectedQuestionIds.delete(question.id);
+renderQuestionsTable();
+updateStats();
 return;
 
 } catch (e) {
@@ -1855,16 +1969,63 @@ showToast('Отмена отправки... Завершится после те
 addLog('info', 'Пользователь запросил отмену отправки');
 }
 
-function toggleSelectAll(checked) {
-if (checked) state.filteredReviews.forEach(r => state.selectedIds.add(r.id));
-else state.selectedIds.clear();
-renderReviewsTable(); updateStats();
+// ---- Select menu (replaces the old "select all" header checkbox) ----
+// A compact action menu: "select all / with responses / without responses /
+// clear selection" instead of a single tri-state checkbox.
+function toggleSelectMenu(type) {
+const trigger = document.getElementById(`selectMenuTrigger_${type}`);
+const dropdown = document.getElementById(`selectMenuDropdown_${type}`);
+if (!trigger || !dropdown) return;
+const isOpen = dropdown.classList.contains('open');
+closeAllSelectMenus();
+if (!isOpen) {
+if (dropdown.parentElement !== document.body) document.body.appendChild(dropdown);
+const rect = trigger.getBoundingClientRect();
+dropdown.style.left = rect.left + 'px';
+dropdown.style.top = (rect.bottom + 4) + 'px';
+dropdown.classList.add('open');
+trigger.classList.add('open');
+}
 }
 
-function toggleSelectAllQuestions(checked) {
-if (checked) state.filteredQuestions.forEach(q => state.selectedQuestionIds.add(q.id));
-else state.selectedQuestionIds.clear();
-renderQuestionsTable(); updateStats();
+function closeAllSelectMenus() {
+['reviews', 'questions'].forEach(type => {
+const trigger = document.getElementById(`selectMenuTrigger_${type}`);
+const dropdown = document.getElementById(`selectMenuDropdown_${type}`);
+dropdown?.classList.remove('open');
+trigger?.classList.remove('open');
+});
+}
+
+function repositionOpenSelectMenus() {
+['reviews', 'questions'].forEach(type => {
+const trigger = document.getElementById(`selectMenuTrigger_${type}`);
+const dropdown = document.getElementById(`selectMenuDropdown_${type}`);
+if (trigger && dropdown && dropdown.classList.contains('open')) {
+const rect = trigger.getBoundingClientRect();
+dropdown.style.left = rect.left + 'px';
+dropdown.style.top = (rect.bottom + 4) + 'px';
+}
+});
+}
+
+function applySelectMenuAction(type, action) {
+closeAllSelectMenus();
+const hasResponse = item => item.response && item.response.trim().length > 0;
+if (type === 'reviews') {
+if (action === 'all') state.filteredReviews.forEach(r => state.selectedIds.add(r.id));
+else if (action === 'withResponse') state.filteredReviews.forEach(r => hasResponse(r) ? state.selectedIds.add(r.id) : state.selectedIds.delete(r.id));
+else if (action === 'withoutResponse') state.filteredReviews.forEach(r => !hasResponse(r) ? state.selectedIds.add(r.id) : state.selectedIds.delete(r.id));
+else if (action === 'none') state.selectedIds.clear();
+renderReviewsTable();
+} else {
+if (action === 'all') state.filteredQuestions.forEach(q => state.selectedQuestionIds.add(q.id));
+else if (action === 'withResponse') state.filteredQuestions.forEach(q => hasResponse(q) ? state.selectedQuestionIds.add(q.id) : state.selectedQuestionIds.delete(q.id));
+else if (action === 'withoutResponse') state.filteredQuestions.forEach(q => !hasResponse(q) ? state.selectedQuestionIds.add(q.id) : state.selectedQuestionIds.delete(q.id));
+else if (action === 'none') state.selectedQuestionIds.clear();
+renderQuestionsTable();
+}
+updateStats();
 }
 
 function toggleSelect(id) {
@@ -1984,6 +2145,7 @@ addLog('error', `Ошибка отправки ${r.id.substring(0,8)}`, e.messag
 applyFilters(); 
 hideProgress();
 
+state.selectedIds.clear();
 document.getElementById('btnSend').classList.remove('hidden');
 document.getElementById('btnCancel').classList.add('hidden');
 
@@ -1991,6 +2153,7 @@ let msg = `Отправлено: ${sent} | Ошибки: ${err}`;
 if (cancelled > 0) msg += ` | Отменено: ${cancelled}`;
 showToast(msg, sent > 0 ? 'success' : 'error');
 addLog('info', 'Отправка отзывов завершена', { sent, err, cancelled });
+updateStats();
 } else {
 if (state.selectedQuestionIds.size === 0) return showToast('Выберите вопросы', 'error');
 const toSend = state.questions.filter(q => state.selectedQuestionIds.has(q.id));
@@ -2025,6 +2188,7 @@ addLog('error', `Ошибка отправки ${q.id.substring(0,8)}`, e.messag
 applyQuestionFilters(); 
 hideProgress();
 
+state.selectedQuestionIds.clear();
 document.getElementById('btnSend').classList.remove('hidden');
 document.getElementById('btnCancel').classList.add('hidden');
 
@@ -2032,6 +2196,7 @@ let msg = `Отправлено: ${sent} | Ошибки: ${err}`;
 if (cancelled > 0) msg += ` | Отменено: ${cancelled}`;
 showToast(msg, sent > 0 ? 'success' : 'error');
 addLog('info', 'Отправка ответов на вопросы завершена', { sent, err, cancelled });
+updateStats();
 }
 }
 
