@@ -3,149 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.14</title>
+    <title>Ozon Reviews AI Manager v.0.15</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/index.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0b1120; color: #e2e8f0; }
-        .glass { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(148, 163, 184, 0.15); }
+        :root {
+            --ozon-blue: #005bff;
+            --ozon-blue-dark: #0046cc;
+            --ozon-blue-light: #eaf1ff;
+            --ozon-bg: #f5f6f8;
+            --ozon-card: #ffffff;
+            --ozon-border: #e3e6eb;
+            --ozon-text: #10151f;
+            --ozon-text-muted: #6c7583;
+            --ozon-green: #14a765;
+            --ozon-green-light: #e6f7ee;
+            --ozon-amber: #ff9500;
+            --ozon-amber-light: #fff4e0;
+            --ozon-red: #f0142f;
+            --ozon-red-light: #fde8ea;
+            --ozon-purple: #7c3aed;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--ozon-bg); color: var(--ozon-text); }
+        .glass { background: var(--ozon-card); border: 1px solid var(--ozon-border); box-shadow: 0 1px 2px rgba(16, 21, 31, 0.04); }
         .btn { transition: all 0.2s ease; cursor: pointer; }
         .btn:active { transform: scale(0.98); }
-        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-        .btn-primary:hover { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); transform: translateY(-1px); }
-        .btn-success { background: linear-gradient(135deg, #10b981, #059669); }
-        .btn-success:hover { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); transform: translateY(-1px); }
-        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
-        .btn-warning:hover { box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); transform: translateY(-1px); }
-        .btn-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-        .btn-purple:hover { box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4); transform: translateY(-1px); }
+        .btn-primary { background: var(--ozon-blue); }
+        .btn-primary:hover { background: var(--ozon-blue-dark); box-shadow: 0 4px 12px rgba(0, 91, 255, 0.25); transform: translateY(-1px); }
+        .btn-success { background: var(--ozon-green); }
+        .btn-success:hover { box-shadow: 0 4px 12px rgba(20, 167, 101, 0.3); transform: translateY(-1px); }
+        .btn-warning { background: var(--ozon-amber); }
+        .btn-warning:hover { box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3); transform: translateY(-1px); }
+        .btn-purple { background: var(--ozon-purple); }
+        .btn-purple:hover { box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); transform: translateY(-1px); }
         .btn-gemini { background: linear-gradient(135deg, #4285f4, #a855f7, #ea4335); }
-        .btn-gemini:hover { box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); transform: translateY(-1px); }
-        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
-        .btn-danger:hover { box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
+        .btn-gemini:hover { box-shadow: 0 4px 15px rgba(168, 85, 247, 0.35); transform: translateY(-1px); }
+        .btn-danger { background: var(--ozon-red); }
+        .btn-danger:hover { box-shadow: 0 4px 12px rgba(240, 20, 47, 0.3); }
         .btn-sm { padding: 4px 8px; font-size: 0.7rem; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
         .table-wrapper { overflow-x: auto; max-height: 70vh; position: relative; overflow-y: auto; }
         table { border-collapse: collapse; width: 100%; table-layout: fixed; }
-        th { background: #1e293b; position: sticky; top: 0; z-index: 50; user-select: none; white-space: nowrap; padding: 12px 8px; border-bottom: 2px solid #334155; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        th { background: #fafbfc; color: var(--ozon-text); position: sticky; top: 0; z-index: 50; user-select: none; white-space: nowrap; padding: 12px 8px; border-bottom: 2px solid var(--ozon-border); box-shadow: 0 1px 3px rgba(16,21,31,0.04); font-weight: 600; font-size: 0.8rem; }
         th .resize-handle { position: absolute; right: 0; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 20; }
-        th .resize-handle:hover { background: rgba(59, 130, 246, 0.5); }
+        th .resize-handle:hover { background: rgba(0, 91, 255, 0.35); }
 
-        td { border-bottom: 1px solid #334155; padding: 10px 8px; vertical-align: middle; }
-        tr:hover td { background: rgba(51, 65, 85, 0.4); }
+        td { border-bottom: 1px solid var(--ozon-border); padding: 10px 8px; vertical-align: middle; }
+        tr:hover td { background: #f7f9fc; }
 
         .status-badge { padding: 3px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .badge-new { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
-        .badge-viewed { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .badge-processed { background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.3); }
-        .badge-unprocessed { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-new { background: var(--ozon-blue-light); color: var(--ozon-blue); border: 1px solid rgba(0, 91, 255, 0.2); }
+        .badge-viewed { background: var(--ozon-amber-light); color: #b56a00; border: 1px solid rgba(255, 149, 0, 0.25); }
+        .badge-processed { background: var(--ozon-green-light); color: var(--ozon-green); border: 1px solid rgba(20, 167, 101, 0.25); }
+        .badge-unprocessed { background: var(--ozon-red-light); color: var(--ozon-red); border: 1px solid rgba(240, 20, 47, 0.25); }
 
         .review-text { max-height: 120px; overflow-y: auto; line-height: 1.5; font-size: 0.85rem; }
         .product-info-cell { font-size: 0.8rem; line-height: 1.4; }
-        .product-name { font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
-        .product-desc { color: #94a3b8; font-size: 0.75rem; max-height: 100px; overflow-y: auto; white-space: pre-wrap; padding-right: 4px; }
+        .product-name { font-weight: 600; color: var(--ozon-text); margin-bottom: 4px; }
+        .product-desc { color: var(--ozon-text-muted); font-size: 0.75rem; max-height: 100px; overflow-y: auto; white-space: pre-wrap; padding-right: 4px; }
         .product-desc::-webkit-scrollbar { width: 4px; }
-        .product-desc::-webkit-scrollbar-track { background: rgba(51, 65, 85, 0.3); border-radius: 2px; }
-        .product-desc::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
-        .product-sku { color: #64748b; font-size: 0.7rem; font-family: monospace; }
-        .product-photo-img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #334155; }
-        .product-photo-placeholder { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #1e293b; border-radius: 6px; border: 1px solid #334155; color: #475569; }
-        .response-input { min-height: 100px; width: 100%; resize: vertical; background: #0f172a; border: 1px solid #475569; color: #e2e8f0; padding: 8px; border-radius: 6px; font-size: 0.85rem; }
-        .response-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
-        .response-input.gemini-filled { border-color: #10b981; background: #022c22; }
+        .product-desc::-webkit-scrollbar-track { background: rgba(0,0,0,0.03); border-radius: 2px; }
+        .product-desc::-webkit-scrollbar-thumb { background: #c7cdd6; border-radius: 2px; }
+        .product-sku { color: var(--ozon-text-muted); font-size: 0.7rem; font-family: monospace; }
+        .product-photo-img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--ozon-border); }
+        .product-photo-placeholder { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f0f2f5; border-radius: 6px; border: 1px solid var(--ozon-border); color: #b3b9c4; }
+        .response-input { min-height: 100px; width: 100%; resize: vertical; background: #fbfbfc; border: 1px solid #d7dbe3; color: var(--ozon-text); padding: 8px; border-radius: 6px; font-size: 0.85rem; }
+        .response-input:focus { outline: none; border-color: var(--ozon-blue); box-shadow: 0 0 0 2px rgba(0, 91, 255, 0.15); }
+        .response-input.gemini-filled { border-color: var(--ozon-green); background: var(--ozon-green-light); }
 
-        .progress-bar { height: 4px; background: #334155; border-radius: 4px; overflow: hidden; margin-top: 8px; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #a855f7); transition: width 0.3s ease; width: 0%; }
+        .progress-bar { height: 4px; background: #eceff3; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--ozon-blue), var(--ozon-purple)); transition: width 0.3s ease; width: 0%; }
 
         .spinner { animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-        .toast { position: fixed; bottom: 24px; right: 24px; z-index: 50; padding: 12px 16px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards; max-width: 400px; word-break: break-word; }
+        .toast { position: fixed; bottom: 24px; right: 24px; z-index: 50; padding: 12px 16px; border-radius: 8px; box-shadow: 0 10px 25px rgba(16,21,31,0.18); animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards; max-width: 400px; word-break: break-word; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; transform: translateY(10px); } }
 
-        .checkbox-custom { width: 18px; height: 18px; accent-color: #3b82f6; cursor: pointer; }
+        .checkbox-custom { width: 18px; height: 18px; accent-color: var(--ozon-blue); cursor: pointer; }
         .tab-btn { padding: 8px 16px; border-radius: 6px; font-weight: 500; transition: all 0.2s; cursor: pointer; user-select: none; }
-        .tab-btn.active { background: #3b82f6; color: white; }
-        .tab-btn:not(.active) { background: transparent; color: #94a3b8; }
-        .tab-btn:not(.active):hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+        .tab-btn.active { background: var(--ozon-blue); color: white; }
+        .tab-btn:not(.active) { background: transparent; color: var(--ozon-text-muted); }
+        .tab-btn:not(.active):hover { background: rgba(0, 91, 255, 0.06); color: var(--ozon-text); }
 
-        select.format-select { background: #0f172a; border: 1px solid #334155; color: #e2e8f0; border-radius: 4px 0 0 4px; padding: 0 8px; font-size: 0.8rem; }
-        select.format-select:focus { outline: none; border-color: #3b82f6; }
+        select.format-select { background: #fbfbfc; border: 1px solid var(--ozon-border); color: var(--ozon-text); border-radius: 4px 0 0 4px; padding: 0 8px; font-size: 0.8rem; }
+        select.format-select:focus { outline: none; border-color: var(--ozon-blue); }
         .group-btn { display: inline-flex; border-radius: 6px; overflow: visible; }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 100; display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; width: 90%; max-width: 800px; max-height: 85vh; overflow-y: auto; }
-        .template-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
-        .template-card:hover { border-color: #475569; }
-        .log-entry { padding: 8px; border-bottom: 1px solid #334155; font-family: monospace; font-size: 0.75rem; }
-        .log-entry:hover { background: rgba(51, 65, 85, 0.3); }
-        .log-time { color: #64748b; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(16,21,31,0.45); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: var(--ozon-card); border: 1px solid var(--ozon-border); border-radius: 12px; padding: 24px; width: 90%; max-width: 800px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(16,21,31,0.15); }
+        .template-card { background: var(--ozon-card); border: 1px solid var(--ozon-border); border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+        .template-card:hover { border-color: #c7cdd6; }
+        .log-entry { padding: 8px; border-bottom: 1px solid var(--ozon-border); font-family: monospace; font-size: 0.75rem; }
+        .log-entry:hover { background: #f7f9fc; }
+        .log-time { color: var(--ozon-text-muted); }
         .log-type { font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-right: 8px; font-size: 0.7rem; }
-        .log-type.request { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
-        .log-type.response { background: rgba(34, 197, 94, 0.2); color: #86efac; }
-        .log-type.error { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
-        .log-type.info { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
-        .json-viewer { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 12px; margin-top: 8px; font-family: monospace; font-size: 0.75rem; max-height: 300px; overflow: auto; }
+        .log-type.request { background: var(--ozon-blue-light); color: var(--ozon-blue); }
+        .log-type.response { background: var(--ozon-green-light); color: var(--ozon-green); }
+        .log-type.error { background: var(--ozon-red-light); color: var(--ozon-red); }
+        .log-type.info { background: var(--ozon-amber-light); color: #b56a00; }
+        .json-viewer { background: #fbfbfc; border: 1px solid var(--ozon-border); border-radius: 6px; padding: 12px; margin-top: 8px; font-family: monospace; font-size: 0.75rem; max-height: 300px; overflow: auto; }
         .action-btns { display: flex; gap: 4px; margin-top: 4px; }
-        .action-btn { padding: 3px 6px; border-radius: 4px; font-size: 0.65rem; border: 1px solid #475569; cursor: pointer; transition: all 0.15s; background: rgba(30, 41, 59, 0.8); }
-        .action-btn:hover { background: #334155; border-color: #64748b; }
-        .action-btn.ai { border-color: #a855f7; color: #c084fc; }
-        .action-btn.ai:hover { background: rgba(168, 85, 247, 0.2); }
-        .action-btn.template { border-color: #f59e0b; color: #fbbf24; }
-        .action-btn.template:hover { background: rgba(245, 158, 11, 0.2); }
-        .action-btn.save { border-color: #10b981; color: #34d399; }
-        .action-btn.save:hover { background: rgba(16, 185, 129, 0.2); }
-        .action-btn.send { border-color: #3b82f6; color: #93c5fd; }
-        .action-btn.send:hover { background: rgba(59, 130, 246, 0.2); }
-        .loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 17, 32, 0.8); display: flex; align-items: center; justify-content: center; z-index: 5; backdrop-filter: blur(2px); }
-        .error-banner { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; padding: 12px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+        .action-btn { padding: 3px 6px; border-radius: 4px; font-size: 0.65rem; border: 1px solid #d7dbe3; cursor: pointer; transition: all 0.15s; background: #fbfbfc; }
+        .action-btn:hover { background: #f0f2f5; border-color: #b3b9c4; }
+        .action-btn.ai { border-color: var(--ozon-purple); color: var(--ozon-purple); }
+        .action-btn.ai:hover { background: rgba(124, 58, 237, 0.08); }
+        .action-btn.template { border-color: var(--ozon-amber); color: #b56a00; }
+        .action-btn.template:hover { background: var(--ozon-amber-light); }
+        .action-btn.save { border-color: var(--ozon-green); color: var(--ozon-green); }
+        .action-btn.save:hover { background: var(--ozon-green-light); }
+        .action-btn.send { border-color: var(--ozon-blue); color: var(--ozon-blue); }
+        .action-btn.send:hover { background: var(--ozon-blue-light); }
+        .loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.85); display: flex; align-items: center; justify-content: center; z-index: 5; backdrop-filter: blur(2px); }
+        .error-banner { background: var(--ozon-red-light); border: 1px solid rgba(240, 20, 47, 0.25); color: #b3122a; padding: 12px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
 
         .multi-select-wrapper { position: relative; }
-        .multi-select-trigger { display: flex; align-items: center; gap: 4px; padding: 4px 10px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: #e2e8f0; transition: border-color 0.15s; }
-        .multi-select-trigger:hover { border-color: #fbbf24; }
-        .multi-select-trigger.open { border-color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
-        .multi-select-dropdown { position: fixed; background: #1e293b; border: 1px solid #334155; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 1000; min-width: 160px; display: none; overflow: hidden; }
+        .multi-select-trigger { display: flex; align-items: center; gap: 4px; padding: 4px 10px; background: #fbfbfc; border: 1px solid var(--ozon-border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--ozon-text); transition: border-color 0.15s; }
+        .multi-select-trigger:hover { border-color: var(--ozon-amber); }
+        .multi-select-trigger.open { border-color: var(--ozon-amber); background: var(--ozon-amber-light); }
+        .multi-select-dropdown { position: fixed; background: var(--ozon-card); border: 1px solid var(--ozon-border); border-radius: 8px; box-shadow: 0 8px 24px rgba(16,21,31,0.15); z-index: 1000; min-width: 160px; display: none; overflow: hidden; }
         .multi-select-dropdown.open { display: block; animation: fadeIn 0.15s ease-out; }
         .multi-select-option { display: flex; align-items: center; gap: 8px; padding: 8px 12px; cursor: pointer; font-size: 0.8rem; transition: background 0.1s; }
-        .multi-select-option:hover { background: rgba(51, 65, 85, 0.6); }
-        .multi-select-option.selected { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
-        .multi-select-option .check-icon { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #475569; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; transition: all 0.15s; }
-        .multi-select-option.selected .check-icon { background: #fbbf24; border-color: #fbbf24; color: #0b1120; }
-        .multi-select-divider { height: 1px; background: #334155; margin: 4px 0; }
+        .multi-select-option:hover { background: #f7f9fc; }
+        .multi-select-option.selected { background: var(--ozon-amber-light); color: #b56a00; }
+        .multi-select-option .check-icon { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #c7cdd6; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; transition: all 0.15s; }
+        .multi-select-option.selected .check-icon { background: var(--ozon-amber); border-color: var(--ozon-amber); color: white; }
+        .multi-select-divider { height: 1px; background: var(--ozon-border); margin: 4px 0; }
 
         .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 20px; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #c7cdd6; transition: .4s; border-radius: 20px; }
         .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider { background-color: var(--ozon-blue); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        .question-link { color: #60a5fa; text-decoration: underline; font-size: 0.75rem; }
-        .question-link:hover { color: #93c5fd; }
-        .author-name { color: #cbd5e1; font-size: 0.8rem; font-weight: 500; }
-        .answers-count { color: #94a3b8; font-size: 0.75rem; }
+        .question-link { color: var(--ozon-blue); text-decoration: underline; font-size: 0.75rem; }
+        .question-link:hover { color: var(--ozon-blue-dark); }
+        .author-name { color: var(--ozon-text); font-size: 0.8rem; font-weight: 500; }
+        .answers-count { color: var(--ozon-text-muted); font-size: 0.75rem; }
     </style>
 </head>
 <body class="min-h-screen">
 <div class="max-w-[98%] mx-auto px-4 py-6">
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
-<h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.14
+<h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center">
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.15
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
 <div class="flex gap-2 flex-wrap items-center">
-<button onclick="switchTab('settings')" class="btn px-4 py-2 glass rounded-lg text-sm flex items-center hover:bg-slate-700 transition">
+<button onclick="switchTab('settings')" class="btn px-4 py-2 glass rounded-lg text-sm flex items-center hover:bg-slate-100 transition">
 <i class="ph ph-gear mr-2"></i> Настройки
 </button>
-<button onclick="switchTab('templates')" class="btn px-4 py-2 glass rounded-lg text-sm flex items-center hover:bg-slate-700 transition">
+<button onclick="switchTab('templates')" class="btn px-4 py-2 glass rounded-lg text-sm flex items-center hover:bg-slate-100 transition">
 <i class="ph ph-files mr-2"></i> Шаблоны
 </button>
 <div class="w-2 hidden md:block"></div>
@@ -155,7 +172,7 @@
 <option value="excel">Excel</option>
 <option value="csv">CSV</option>
 </select>
-<button onclick="exportData()" class="btn btn-success px-4 py-2 rounded-r-lg text-white text-sm font-medium flex items-center border-l border-slate-600 hover:bg-green-600 transition" id="btnExport" disabled>
+<button onclick="exportData()" class="btn btn-success px-4 py-2 rounded-r-lg text-white text-sm font-medium flex items-center border-l border-slate-300 hover:brightness-95 transition" id="btnExport" disabled>
 <i class="ph ph-download-simple mr-2"></i> Экспорт
 </button>
 </div>
@@ -165,7 +182,7 @@
 <option value="excel">Excel</option>
 <option value="csv">CSV</option>
 </select>
-<button onclick="document.getElementById('importFile').click()" class="btn btn-warning px-4 py-2 rounded-r-lg text-white text-sm font-medium flex items-center border-l border-slate-600 hover:bg-yellow-600 transition" id="btnImport" disabled>
+<button onclick="document.getElementById('importFile').click()" class="btn btn-warning px-4 py-2 rounded-r-lg text-white text-sm font-medium flex items-center border-l border-slate-300 hover:brightness-95 transition" id="btnImport" disabled>
 <i class="ph ph-upload-simple mr-2"></i> Импорт
 </button>
 </div>
@@ -195,7 +212,7 @@
 <p class="text-xs text-slate-500 mt-1" id="progressDetail">Инициализация...</p>
 </div>
 
-<div class="flex gap-4 mb-4 border-b border-slate-700 pb-2">
+<div class="flex gap-4 mb-4 border-b border-slate-300 pb-2">
 <div class="tab-btn active" onclick="switchTab('reviews')" id="tabBtnReviews"> Отзывы</div>
 <div class="tab-btn" onclick="switchTab('questions')" id="tabBtnQuestions">❓ Вопросы</div>
 <div class="flex-1"></div>
@@ -206,7 +223,7 @@
 <div id="tabReviews" class="fade-in">
 <div id="errorBanner" class="hidden error-banner">
 <span id="errorText">Ошибка загрузки</span>
-<button onclick="document.getElementById('errorBanner').classList.add('hidden')" class="text-xs underline hover:text-white">Скрыть</button>
+<button onclick="document.getElementById('errorBanner').classList.add('hidden')" class="text-xs underline hover:text-red-800">Скрыть</button>
 </div>
 
 <div class="glass rounded-lg p-3 mb-4 flex flex-wrap gap-3 items-center">
@@ -216,7 +233,7 @@
 <div class="flex-1"></div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Статус:</label>
-<select id="filterStatus" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none" onchange="applyFilters()">
+<select id="filterStatus" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none" onchange="applyFilters()">
 <option value="ALL" selected>Все</option>
 <option value="NEW">Новые</option>
 <option value="VIEWED">Просмотренные</option>
@@ -225,7 +242,7 @@
 </div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Ozon ID:</label>
-<input type="text" id="searchSku" placeholder="Поиск" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-28" oninput="applyFilters()">
+<input type="text" id="searchSku" placeholder="Поиск" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-28" oninput="applyFiltersDebounced()">
 </div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Оценка:</label>
@@ -266,7 +283,7 @@
 </div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Текст:</label>
-<select id="sortHasText" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-32" onchange="applyFilters()">
+<select id="sortHasText" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-32" onchange="applyFilters()">
 <option value="all">Все</option>
 <option value="has">Есть текст</option>
 <option value="no">Без текста</option>
@@ -274,7 +291,7 @@
 </div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Дата:</label>
-<select id="sortDate" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-32" onchange="applyFilters()">
+<select id="sortDate" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-32" onchange="applyFilters()">
 <option value="desc">Новые</option>
 <option value="asc">Старые</option>
 </select>
@@ -286,7 +303,7 @@
 <div id="tableLoading" class="loading-overlay hidden">
 <div class="text-center">
 <div class="spinner w-8 h-8 border-2 border-blue-500 border-t-transparent mx-auto mb-2"></div>
-<div class="text-sm text-slate-300">Загрузка отзывов...</div>
+<div class="text-sm text-slate-700">Загрузка отзывов...</div>
 </div>
 </div>
 <table id="reviewsTable">
@@ -309,7 +326,7 @@
 </table>
 </div>
 <div class="flex justify-center mt-4">
-<button onclick="fetchReviews(true)" id="btnLoadMore" class="btn px-4 py-2 glass rounded-lg text-sm hidden hover:bg-slate-700/80">
+<button onclick="fetchReviews(true)" id="btnLoadMore" class="btn px-4 py-2 glass rounded-lg text-sm hidden hover:bg-slate-100">
 <i class="ph ph-arrow-down mr-2"></i> Загрузить ещё
 </button>
 </div>
@@ -319,7 +336,7 @@
 <div id="tabQuestions" class="hidden fade-in">
 <div id="errorBannerQuestions" class="hidden error-banner">
 <span id="errorTextQuestions">Ошибка загрузки</span>
-<button onclick="document.getElementById('errorBannerQuestions').classList.add('hidden')" class="text-xs underline hover:text-white">Скрыть</button>
+<button onclick="document.getElementById('errorBannerQuestions').classList.add('hidden')" class="text-xs underline hover:text-red-800">Скрыть</button>
 </div>
 
 <div class="glass rounded-lg p-3 mb-4 flex flex-wrap gap-3 items-center">
@@ -329,7 +346,7 @@
 <div class="flex-1"></div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Статус:</label>
-<select id="filterQuestionStatus" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none" onchange="applyQuestionFilters()">
+<select id="filterQuestionStatus" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none" onchange="applyQuestionFilters()">
 <option value="ALL" selected>Все</option>
 <option value="NEW">Новые</option>
 <option value="VIEWED">Просмотренные</option>
@@ -339,19 +356,19 @@
 </div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Ozon ID:</label>
-<input type="text" id="searchQuestionSku" placeholder="SKU" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-28" oninput="applyQuestionFilters()">
+<input type="text" id="searchQuestionSku" placeholder="SKU" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-28" oninput="applyQuestionFiltersDebounced()">
 </div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Артикул:</label>
-<input type="text" id="searchQuestionOfferId" placeholder="Артикул" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-28" oninput="applyQuestionFilters()">
+<input type="text" id="searchQuestionOfferId" placeholder="Артикул" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-28" oninput="applyQuestionFiltersDebounced()">
 </div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Название:</label>
-<input type="text" id="searchQuestionName" placeholder="Название товара" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-40" oninput="applyQuestionFilters()">
+<input type="text" id="searchQuestionName" placeholder="Название товара" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-40" oninput="applyQuestionFiltersDebounced()">
 </div>
 <div class="flex items-center gap-2">
 <label class="text-xs text-slate-400">Дата:</label>
-<select id="sortQuestionDate" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-32" onchange="applyQuestionFilters()">
+<select id="sortQuestionDate" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none w-32" onchange="applyQuestionFilters()">
 <option value="desc">Новые</option>
 <option value="asc">Старые</option>
 </select>
@@ -363,7 +380,7 @@
 <div id="tableLoadingQuestions" class="loading-overlay hidden">
 <div class="text-center">
 <div class="spinner w-8 h-8 border-2 border-blue-500 border-t-transparent mx-auto mb-2"></div>
-<div class="text-sm text-slate-300">Загрузка вопросов...</div>
+<div class="text-sm text-slate-700">Загрузка вопросов...</div>
 </div>
 </div>
 <table id="questionsTable">
@@ -386,7 +403,7 @@
 </table>
 </div>
 <div class="flex justify-center mt-4">
-<button onclick="fetchQuestions(true)" id="btnLoadMoreQuestions" class="btn px-4 py-2 glass rounded-lg text-sm hidden hover:bg-slate-700/80">
+<button onclick="fetchQuestions(true)" id="btnLoadMoreQuestions" class="btn px-4 py-2 glass rounded-lg text-sm hidden hover:bg-slate-100">
 <i class="ph ph-arrow-down mr-2"></i> Загрузить ещё
 </button>
 </div>
@@ -415,10 +432,10 @@
 <div class="glass rounded-xl p-5">
 <h3 class="font-semibold mb-4 text-lg flex items-center"><i class="ph ph-storefront mr-2"></i> Ozon Seller API</h3>
 <div class="space-y-3">
-<div><label class="text-xs text-slate-400 block mb-1">Client-ID</label><input type="text" id="ozonClientId" class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="Ваш Client-ID"></div>
-<div><label class="text-xs text-slate-400 block mb-1">API-Key</label><input type="password" id="ozonApiKey" class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="Ваш API-Key"></div>
-<div><label class="text-xs text-slate-400 block mb-1">CORS Proxy</label><input type="text" id="ozonCorsProxy" class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="https://corsproxy.io/?"></div>
-<div><label class="text-xs text-slate-400 block mb-1">Макс. страниц загрузки</label><input type="number" id="maxPages" class="w-24 bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" value="5" min="1" max="20">
+<div><label class="text-xs text-slate-400 block mb-1">Client-ID</label><input type="text" id="ozonClientId" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="Ваш Client-ID"></div>
+<div><label class="text-xs text-slate-400 block mb-1">API-Key</label><input type="password" id="ozonApiKey" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="Ваш API-Key"></div>
+<div><label class="text-xs text-slate-400 block mb-1">CORS Proxy</label><input type="text" id="ozonCorsProxy" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="https://corsproxy.io/?"></div>
+<div><label class="text-xs text-slate-400 block mb-1">Макс. страниц загрузки</label><input type="number" id="maxPages" class="w-24 bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" value="5" min="1" max="20">
 <p class="text-[10px] text-slate-500 mt-1">Рекомендуется 5-10 страниц для полного списка</p></div>
 <div class="pt-2 flex gap-2">
 <button onclick="testOzonConnection()" class="btn btn-primary px-4 py-2 rounded text-white text-sm">
@@ -430,11 +447,11 @@
 <div class="glass rounded-xl p-5">
 <h3 class="font-semibold mb-4 text-lg flex items-center"><i class="ph ph-sparkle mr-2 text-purple-400"></i> Google Gemini API</h3>
 <div class="space-y-3">
-<div><label class="text-xs text-slate-400 block mb-1">API Key</label><input type="password" id="geminiApiKey" class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="Введите ваш API ключ Gemini"></div>
+<div><label class="text-xs text-slate-400 block mb-1">API Key</label><input type="password" id="geminiApiKey" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="Введите ваш API ключ Gemini"></div>
 <div>
 <label class="text-xs text-slate-400 block mb-1">Модель</label>
 <div class="flex gap-2">
-<select id="geminiModel" class="flex-1 bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition">
+<select id="geminiModel" class="flex-1 bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition">
 <option value="">Сначала обновите список...</option>
 </select>
 <button onclick="updateGeminiModels()" class="btn btn-purple px-3 py-2 rounded text-white text-xs">
@@ -442,34 +459,34 @@
 </button>
 </div>
 </div>
-<div class="flex items-center gap-3 mt-2 p-2 bg-slate-800/50 rounded border border-slate-700">
+<div class="flex items-center gap-3 mt-2 p-2 bg-slate-50/50 rounded border border-slate-300">
 <label class="switch">
 <input type="checkbox" id="slowModeToggle" checked onchange="updateSlowModeStatus()">
 <span class="slider"></span>
 </label>
 <div>
-<div class="text-sm font-medium text-blue-300">Slow Mode (Лимиты API)</div>
-<div class="text-[10px] text-slate-400">15 запросов/мин, 500/день. Отправка только вручную кнопкой «Отправить».</div>
+<div class="text-sm font-medium text-blue-700">Slow Mode (Лимиты API)</div>
+<div class="text-[10px] text-slate-500">15 запросов/мин, 500/день — бесплатный лимит для моделей типа Gemini 3.5 Flash Lite. Для других моделей лимиты могут отличаться. Отправка только вручную кнопкой «Отправить».</div>
 </div>
 </div>
 <div class="flex items-center justify-between mt-1">
-    <span class="text-[10px] text-slate-500">Использовано запросов сегодня: <span id="dailyCounterDisplay" class="text-yellow-400">0</span> / 500</span>
-    <button onclick="resetDailyCounter()" class="text-[10px] text-red-400 hover:text-red-300 underline ml-2">Сбросить лимит</button>
+    <span class="text-[10px] text-slate-500">Использовано запросов сегодня: <span id="dailyCounterDisplay" class="text-amber-600">0</span> / 500</span>
+    <button onclick="resetDailyCounter()" class="text-[10px] text-red-600 hover:text-red-700 underline ml-2">Сбросить лимит</button>
 </div>
 <div>
 <label class="text-xs text-slate-400 block mb-1">Лимит токенов</label>
 <div class="flex items-center gap-4">
-<input type="number" id="geminiMaxTokens" class="w-24 bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="200" min="10" max="2048">
+<input type="number" id="geminiMaxTokens" class="w-24 bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="200" min="10" max="2048">
 <span class="text-[10px] text-slate-500">Для 2-3 предложений значение 150–200 — золотая середина.</span>
 </div>
 </div>
 <div>
 <label class="text-xs text-slate-400 block mb-1">Промпт для отзывов</label>
-<textarea id="geminiPromptTemplate" class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты — помощник продавца на Ozon. Напиши вежливый, профессиональный ответ на отзыв покупателя, всегда старайся разобраться в ситуации. Всегда упоминай товар конкретный товар в тексте отзыва, чтобы улучшать SEO карточки. Учитывай рейтинг: если 4-5 звезд — поблагодари, если 3 — нейтрально-вежливый, если 1-2 — извинись и предложи решение. Ответ должен быть на русском языке, длиной не более 2 предложения. Никогда не используй символ —.</textarea>
+<textarea id="geminiPromptTemplate" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты — помощник продавца на Ozon. Напиши вежливый, профессиональный ответ на отзыв покупателя, всегда старайся разобраться в ситуации. Всегда упоминай товар конкретный товар в тексте отзыва, чтобы улучшать SEO карточки. Учитывай рейтинг: если 4-5 звезд — поблагодари, если 3 — нейтрально-вежливый, если 1-2 — извинись и предложи решение. Ответ должен быть на русском языке, длиной не более 2 предложения. Никогда не используй символ —.</textarea>
 </div>
 <div>
 <label class="text-xs text-slate-400 block mb-1">Промпт для вопросов</label>
-<textarea id="geminiPromptQuestions" class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты — помощник продавца на Ozon. Ответь на вопрос покупателя о товаре вежливо, профессионально и информативно. Всегда упоминай конкретный товар. Ответ должен быть на русском языке, длиной не более 2-3 предложений. Никогда не используй символ —. Если вопрос о характеристиках, размере, цвете — дай точный ответ.</textarea>
+<textarea id="geminiPromptQuestions" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты — помощник продавца на Ozon. Ответь на вопрос покупателя о товаре вежливо, профессионально и информативно. Всегда упоминай конкретный товар. Ответ должен быть на русском языке, длиной не более 2-3 предложений. Никогда не используй символ —. Если вопрос о характеристиках, размере, цвете — дай точный ответ.</textarea>
 </div>
 <div class="pt-2 flex gap-2">
 <button onclick="testGeminiConnection()" class="btn btn-gemini px-4 py-2 rounded text-white text-sm">
@@ -495,7 +512,7 @@
 </h3>
 <div class="flex items-center gap-2 mb-3">
 <label class="text-xs text-slate-400">Фильтр:</label>
-<select id="logFilter" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none" onchange="renderLog()">
+<select id="logFilter" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:border-blue-500 outline-none" onchange="renderLog()">
 <option value="ALL">Все</option>
 <option value="REQUEST">Запросы</option>
 <option value="RESPONSE">Ответы</option>
@@ -517,11 +534,11 @@
 <div class="space-y-3">
 <div>
 <label class="text-xs text-slate-400 block mb-1">Название шаблона</label>
-<input type="text" id="templateName" class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="Например: Благодарность за 5 звезд">
+<input type="text" id="templateName" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="Например: Благодарность за 5 звезд">
 </div>
 <div>
 <label class="text-xs text-slate-400 block mb-1">Текст шаблона</label>
-<textarea id="templateText" class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition h-32 resize-y" placeholder="Текст ответа..."></textarea>
+<textarea id="templateText" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition h-32 resize-y" placeholder="Текст ответа..."></textarea>
 </div>
 </div>
 <div class="flex gap-2 justify-end mt-4">
@@ -536,7 +553,7 @@
 <!-- Template Selection Modal -->
 <div id="templateSelectModal" class="hidden modal-overlay">
 <div class="modal-content">
-<h3 class="text-lg font-semibold mb-4 flex items-center"><i class="ph ph-files mr-2 text-yellow-400"></i>Выберите шаблон</h3>
+<h3 class="text-lg font-semibold mb-4 flex items-center"><i class="ph ph-files mr-2 text-amber-600"></i>Выберите шаблон</h3>
 <div id="templateSelectList" class="space-y-2 max-h-60 overflow-y-auto"></div>
 <div class="flex gap-2 justify-end mt-4">
 <button onclick="closeTemplateSelectModal()" class="btn px-4 py-2 glass rounded-lg text-sm">Отмена</button>
@@ -594,6 +611,33 @@ currentTab: 'reviews'
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// Reviews/questions text, product names/descriptions, template text and log
+// messages can all contain arbitrary characters (including from the seller's
+// own catalogue or a customer's message). They're inserted via innerHTML for
+// convenience, so escape them first to avoid stray markup breaking layout or
+// being interpreted as HTML.
+function escapeHtml(value) {
+if (value === null || value === undefined) return '';
+return String(value)
+.replace(/&/g, '&amp;')
+.replace(/</g, '&lt;')
+.replace(/>/g, '&gt;')
+.replace(/"/g, '&quot;')
+.replace(/'/g, '&#39;');
+}
+
+// Generic debounce: delays re-filtering the (potentially large) table until
+// the person pauses typing, instead of re-rendering on every keystroke.
+function debounce(fn, delay = 250) {
+let timer = null;
+return (...args) => {
+clearTimeout(timer);
+timer = setTimeout(() => fn(...args), delay);
+};
+}
+const applyFiltersDebounced = debounce(() => applyFilters(), 250);
+const applyQuestionFiltersDebounced = debounce(() => applyQuestionFilters(), 250);
+
 document.addEventListener('DOMContentLoaded', () => {
 loadSettings();
 loadTemplates();
@@ -615,7 +659,7 @@ closeRatingDropdown();
 window.addEventListener('scroll', () => { if (state.ratingDropdownOpen) positionDropdown(); }, true);
 window.addEventListener('resize', () => { if (state.ratingDropdownOpen) positionDropdown(); });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.14 - Reset Counter & Quick Save' });
+addLog('info', 'Приложение запущено', { version: 'v.0.15 - Ozon UI, security & perf refactor' });
 });
 
 function resetDailyCounter() {
@@ -698,7 +742,7 @@ function showToast(msg, type = 'info') {
 const c = document.getElementById('toastContainer');
 const t = document.createElement('div');
 t.className = `toast ${type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600'} text-white flex items-center gap-2 shadow-lg`;
-t.innerHTML = `<i class="ph ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-warning-circle' : 'ph-info'}"></i> ${msg}`;
+t.innerHTML = `<i class="ph ${type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-warning-circle' : 'ph-info'}"></i> ${escapeHtml(msg)}`;
 c.appendChild(t); setTimeout(() => t.remove(), 5000);
 }
 
@@ -746,14 +790,21 @@ if (!container) return;
 const filter = document.getElementById('logFilter')?.value || 'ALL';
 const filtered = filter === 'ALL' ? state.logs : state.logs.filter(l => l.type === filter);
 if (filtered.length === 0) { container.innerHTML = '<div class="text-center text-slate-500 py-10">Лог пуст</div>'; return; }
-container.innerHTML = filtered.map(log => `
+// Only render the most recent entries — a long session can accumulate
+// thousands of log lines, and rebuilding the whole list on every addLog()
+// call would get slower and slower.
+const MAX_RENDERED_LOGS = 300;
+const toRender = filtered.length > MAX_RENDERED_LOGS ? filtered.slice(-MAX_RENDERED_LOGS) : filtered;
+let html = filtered.length > MAX_RENDERED_LOGS ? `<div class="text-center text-slate-500 py-2 text-xs">Показаны последние ${MAX_RENDERED_LOGS} из ${filtered.length}</div>` : '';
+html += toRender.map(log => `
 <div class="log-entry">
-<span class="log-time">${log.time}</span>
-<span class="log-type ${log.type.toLowerCase()}">${log.type}</span>
-<span class="text-slate-300">${log.message}</span>
-${log.detail ? `<div class="json-viewer">${log.detail}</div>` : ''}
+<span class="log-time">${escapeHtml(log.time)}</span>
+<span class="log-type ${log.type.toLowerCase()}">${escapeHtml(log.type)}</span>
+<span class="text-slate-700">${escapeHtml(log.message)}</span>
+${log.detail ? `<div class="json-viewer">${escapeHtml(log.detail)}</div>` : ''}
 </div>
 `).join('');
+container.innerHTML = html;
 container.scrollTop = container.scrollHeight;
 }
 
@@ -846,13 +897,13 @@ if (state.templates.length === 0) { container.innerHTML = '<div class="text-cent
 container.innerHTML = state.templates.map(t => `
 <div class="template-card">
 <div class="flex items-center justify-between mb-2">
-<span class="text-sm font-semibold text-slate-200">${t.name}</span>
+<span class="text-sm font-semibold text-slate-800">${escapeHtml(t.name)}</span>
 <div class="flex gap-1">
 <button onclick="editTemplate('${t.id}')" class="btn-sm action-btn">✏️</button>
-<button onclick="deleteTemplate('${t.id}')" class="btn-sm action-btn" style="border-color:#ef4444;color:#f87171">️</button>
+<button onclick="deleteTemplate('${t.id}')" class="btn-sm action-btn" style="border-color:#f0142f;color:#f0142f"><i class="ph ph-trash"></i></button>
 </div>
 </div>
-<div class="text-xs text-slate-400 bg-slate-800 rounded p-2 whitespace-pre-wrap">${t.text}</div>
+<div class="text-xs text-slate-500 bg-slate-50 rounded p-2 whitespace-pre-wrap">${escapeHtml(t.text)}</div>
 </div>
 `).join('');
 }
@@ -903,8 +954,8 @@ container.innerHTML = '<div class="text-center text-slate-500 py-4">Нет ша�
 } else {
 container.innerHTML = state.templates.map(t => `
 <div class="template-card cursor-pointer" onclick="applyTemplateToItem('${itemId}', '${t.id}')">
-<div class="text-sm font-semibold text-slate-200">${t.name}</div>
-<div class="text-xs text-slate-400 mt-1">${t.text.substring(0, 80)}${t.text.length > 80 ? '...' : ''}</div>
+<div class="text-sm font-semibold text-slate-800">${escapeHtml(t.name)}</div>
+<div class="text-xs text-slate-500 mt-1">${escapeHtml(t.text.substring(0, 80))}${t.text.length > 80 ? '...' : ''}</div>
 </div>
 `).join('');
 }
@@ -1331,11 +1382,11 @@ updateStats();
 
 function renderReviewsTable() {
 const tbody = document.getElementById('reviewsBody');
-tbody.innerHTML = '';
 if (state.filteredReviews.length === 0) {
 tbody.innerHTML = '<tr><td colspan="9" class="text-center text-slate-500 py-8">Нет отзывов по заданным фильтрам</td></tr>';
 return;
 }
+const fragment = document.createDocumentFragment();
 state.filteredReviews.forEach(r => {
 const tr = document.createElement('tr');
 const dateStr = new Date(r.published_at).toLocaleDateString('ru-RU');
@@ -1352,16 +1403,16 @@ else if (r.status === 'PROCESSED') { statusBadgeClass = 'badge-processed'; statu
 const prod = state.productDescriptions[String(r.sku)];
 let photoHtml = '';
 if (prod && prod.primary_image) {
-photoHtml = `<div class="product-photo-cell"><img src="${prod.primary_image}" class="product-photo-img" alt="Product" loading="lazy"></div>`;
+photoHtml = `<div class="product-photo-cell"><img src="${escapeHtml(prod.primary_image)}" class="product-photo-img" alt="Product" loading="lazy"></div>`;
 } else {
 photoHtml = `<div class="product-photo-cell"><div class="product-photo-placeholder"><i class="ph ph-image"></i></div></div>`;
 }
 
 const prodHtml = prod ? `
 <div class="product-info-cell">
-<div class="product-name">${prod.name}</div>
-${prod.description ? `<div class="product-desc">${prod.description}</div>` : ''}
-<div class="product-sku">Ozon ID: ${r.sku}${prod.offer_id ? ` | Артикул: ${prod.offer_id}` : ''}</div>
+<div class="product-name">${escapeHtml(prod.name)}</div>
+${prod.description ? `<div class="product-desc">${escapeHtml(prod.description)}</div>` : ''}
+<div class="product-sku">Ozon ID: ${r.sku}${prod.offer_id ? ` | Артикул: ${escapeHtml(prod.offer_id)}` : ''}</div>
 </div>
 ` : `<div class="product-sku">Ozon ID: ${r.sku}</div>`;
 
@@ -1369,13 +1420,13 @@ tr.innerHTML = `
 <td><input type="checkbox" class="checkbox-custom" ${state.selectedIds.has(r.id) ? 'checked' : ''} onchange="toggleSelect('${r.id}')"></td>
 <td class="text-xs text-slate-400">${dateStr}</td>
 <td class="text-xs font-mono">${r.sku}</td>
-<td class="text-yellow-400 text-sm">${stars}</td>
+<td class="text-amber-600 text-sm">${stars}</td>
 <td>${photoHtml}</td>
 <td>${prodHtml}</td>
 <td><span class="status-badge ${statusBadgeClass}">${statusText}</span></td>
-<td><div class="review-text text-slate-300">${r.text || '<span class="text-slate-500 italic">Без текста</span>'}</div></td>
+<td><div class="review-text text-slate-700">${r.text ? escapeHtml(r.text) : '<span class="text-slate-500 italic">Без текста</span>'}</div></td>
 <td>
-<textarea class="${taClass}" data-id="${r.id}" placeholder="Введите ответ..." onchange="updateResponse('${r.id}', this.value)">${r.response || ''}</textarea>
+<textarea class="${taClass}" data-id="${r.id}" placeholder="Введите ответ..." onchange="updateResponse('${r.id}', this.value)">${escapeHtml(r.response || '')}</textarea>
 <div class="action-btns">
 <button class="action-btn ai" onclick="generateForReview('${r.id}')" title="Сгенерировать ответ AI"><i class="ph ph-sparkle"></i> AI</button>
 <button class="action-btn template" onclick="showTemplateSelectForItem('${r.id}')" title="Выбрать шаблон"><i class="ph ph-files"></i> Шаблон</button>
@@ -1384,17 +1435,19 @@ ${hasResponse ? `<button class="action-btn send" onclick="sendSingleResponseToOz
 </div>
 </td>
 `;
-tbody.appendChild(tr);
+fragment.appendChild(tr);
 });
+tbody.innerHTML = '';
+tbody.appendChild(fragment);
 }
 
 function renderQuestionsTable() {
 const tbody = document.getElementById('questionsBody');
-tbody.innerHTML = '';
 if (state.filteredQuestions.length === 0) {
 tbody.innerHTML = '<tr><td colspan="9" class="text-center text-slate-500 py-8">Нет вопросов по заданным фильтрам</td></tr>';
 return;
 }
+const fragment = document.createDocumentFragment();
 state.filteredQuestions.forEach(q => {
 const tr = document.createElement('tr');
 const dateStr = new Date(q.published_at).toLocaleDateString('ru-RU');
@@ -1411,20 +1464,20 @@ else if (q.status === 'UNPROCESSED') { statusBadgeClass = 'badge-unprocessed'; s
 const prod = state.productDescriptions[String(q.sku)];
 let photoHtml = '';
 if (prod && prod.primary_image) {
-photoHtml = `<div class="product-photo-cell"><img src="${prod.primary_image}" class="product-photo-img" alt="Product" loading="lazy"></div>`;
+photoHtml = `<div class="product-photo-cell"><img src="${escapeHtml(prod.primary_image)}" class="product-photo-img" alt="Product" loading="lazy"></div>`;
 } else {
 photoHtml = `<div class="product-photo-cell"><div class="product-photo-placeholder"><i class="ph ph-image"></i></div></div>`;
 }
 
 const prodHtml = prod ? `
 <div class="product-info-cell">
-<div class="product-name">${prod.name}</div>
-${prod.description ? `<div class="product-desc">${prod.description}</div>` : ''}
-<div class="product-sku">Ozon ID: ${q.sku}${prod.offer_id ? ` | Артикул: ${prod.offer_id}` : ''}</div>
+<div class="product-name">${escapeHtml(prod.name)}</div>
+${prod.description ? `<div class="product-desc">${escapeHtml(prod.description)}</div>` : ''}
+<div class="product-sku">Ozon ID: ${q.sku}${prod.offer_id ? ` | Артикул: ${escapeHtml(prod.offer_id)}` : ''}</div>
 </div>
 ` : `<div class="product-sku">Ozon ID: ${q.sku}</div>`;
 
-const linkHtml = q.question_link ? `<a href="${q.question_link}" target="_blank" class="question-link">Ссылка на вопрос</a>` : '';
+const linkHtml = q.question_link ? `<a href="${escapeHtml(q.question_link)}" target="_blank" rel="noopener noreferrer" class="question-link">Ссылка на вопрос</a>` : '';
 
 tr.innerHTML = `
 <td><input type="checkbox" class="checkbox-custom" ${state.selectedQuestionIds.has(q.id) ? 'checked' : ''} onchange="toggleSelectQuestion('${q.id}')"></td>
@@ -1432,11 +1485,11 @@ tr.innerHTML = `
 <td class="text-xs font-mono">${q.sku}</td>
 <td>${photoHtml}</td>
 <td>${prodHtml}</td>
-<td><div class="author-name">${q.author_name}</div>${linkHtml}</td>
+<td><div class="author-name">${escapeHtml(q.author_name)}</div>${linkHtml}</td>
 <td><span class="status-badge ${statusBadgeClass}">${statusText}</span></td>
-<td><div class="review-text text-slate-300">${q.text || '<span class="text-slate-500 italic">Без текста</span>'}</div><div class="answers-count">Ответов: ${q.answers_count}</div></td>
+<td><div class="review-text text-slate-700">${q.text ? escapeHtml(q.text) : '<span class="text-slate-500 italic">Без текста</span>'}</div><div class="answers-count">Ответов: ${q.answers_count}</div></td>
 <td>
-<textarea class="${taClass}" data-id="${q.id}" placeholder="Введите ответ на вопрос..." onchange="updateQuestionResponse('${q.id}', this.value)">${q.response || ''}</textarea>
+<textarea class="${taClass}" data-id="${q.id}" placeholder="Введите ответ на вопрос..." onchange="updateQuestionResponse('${q.id}', this.value)">${escapeHtml(q.response || '')}</textarea>
 <div class="action-btns">
 <button class="action-btn ai" onclick="generateForQuestion('${q.id}')" title="Сгенерировать ответ AI"><i class="ph ph-sparkle"></i> AI</button>
 <button class="action-btn template" onclick="showTemplateSelectForItem('${q.id}')" title="Выбрать шаблон"><i class="ph ph-files"></i> Шаблон</button>
@@ -1445,8 +1498,10 @@ ${hasResponse ? `<button class="action-btn send" onclick="sendSingleQuestionAnsw
 </div>
 </td>
 `;
-tbody.appendChild(tr);
+fragment.appendChild(tr);
 });
+tbody.innerHTML = '';
+tbody.appendChild(fragment);
 }
 
 function saveCurrentTextAsTemplate(id) {
@@ -1466,53 +1521,111 @@ function saveCurrentTextAsTemplate(id) {
     }
 }
 
+// ---- Shared Gemini helpers (used by single-item buttons and batch modal) ----
+
+const GEMINI_SAFETY_SETTINGS = [
+{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+{ category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+{ category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+];
+
+// Sliding-window rate limiter matching Gemini free-tier limits (15 RPM).
+// Only throttles when Slow Mode is enabled; waits just long enough to stay
+// under the limit instead of always sleeping a fixed amount.
+const geminiRateLimiter = {
+timestamps: [],
+rpm: 15,
+async acquire(onWait) {
+if (!state.slowMode) return;
+const now = Date.now();
+this.timestamps = this.timestamps.filter(t => now - t < 60000);
+if (this.timestamps.length >= this.rpm) {
+const waitMs = Math.max(0, 60000 - (now - this.timestamps[0]) + 250);
+if (waitMs > 0) {
+if (onWait) onWait(waitMs);
+addLog('info', `Лимит Gemini: ${this.rpm} запросов/мин. Ожидание ${Math.ceil(waitMs / 1000)}с...`);
+const detailEl = document.getElementById('geminiProgressDetail');
+if (detailEl) detailEl.textContent = `Ожидание лимита Gemini (${this.rpm}/мин): ${Math.ceil(waitMs / 1000)}с...`;
+await sleep(waitMs);
+}
+}
+this.timestamps.push(Date.now());
+}
+};
+
+function buildProductInfoBlock(sku) {
+const prod = state.productDescriptions[String(sku)];
+if (!prod) return '';
+let info = `Товар: ${prod.name}\nOzon ID: ${sku}\n`;
+if (prod.description) info += `Описание: ${prod.description.substring(0, 200)}\n`;
+return info;
+}
+
+function buildReviewPrompt(review, template) {
+return `${template}\n${buildProductInfoBlock(review.sku)}\nОтзыв:\nОценка: ${review.rating}/5\nТекст: ${review.text || 'Без текста'}\nНапиши ответ:`;
+}
+
+function buildQuestionPrompt(question, template) {
+return `${template}\n${buildProductInfoBlock(question.sku)}\nВопрос покупателя:\n${question.text || 'Без текста'}\nНапиши ответ:`;
+}
+
+// Single point of contact with the Gemini API. Sends the key as a header
+// (x-goog-api-key) instead of a URL query parameter so it never ends up in
+// browser history, proxy logs, or the network panel's request line.
+async function callGeminiGenerate(apiKey, model, maxTokens, prompt, logLabel, logMeta) {
+await geminiRateLimiter.acquire();
+const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+const requestBody = {
+contents: [{ parts: [{ text: prompt }] }],
+generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens, topP: 0.95, topK: 40, responseMimeType: "text/plain" },
+safetySettings: GEMINI_SAFETY_SETTINGS
+};
+addLog('request', logLabel, logMeta);
+let response;
+try {
+response = await fetch(url, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+body: JSON.stringify(requestBody)
+});
+} catch (e) {
+addLog('error', 'Сетевая ошибка Gemini', e.message);
+throw new Error('Сетевая ошибка: ' + e.message);
+}
+if (!response.ok) {
+const err = await response.json().catch(() => ({}));
+addLog('error', 'Ошибка Gemini', err);
+throw new Error(err.error?.message || `Ошибка API (HTTP ${response.status})`);
+}
+const data = await response.json();
+let fullText = '';
+if (data.candidates && data.candidates.length > 0 && data.candidates[0].content?.parts) {
+fullText = data.candidates[0].content.parts.map(p => p.text).join('');
+}
+fullText = fullText.trim() || 'Не удалось сгенерировать';
+addLog('response', 'Ответ от Gemini', { response: fullText });
+return fullText;
+}
+
 async function generateForReview(reviewId) {
 const apiKey = localStorage.getItem('gemini_apiKey');
 if (!apiKey) { showToast('Введите Gemini API Key', 'error'); return; }
 const review = state.reviews.find(r => r.id === reviewId);
 if (!review) return;
 
-if (state.slowMode) {
-if (!checkDailyLimit()) {
+if (state.slowMode && !checkDailyLimit()) {
 showToast('Превышен дневной лимит 500 запросов', 'error');
 return;
-}
 }
 
 const model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash-latest';
 const promptTemplate = localStorage.getItem('gemini_prompt') || 'Ты — помощник продавца на Ozon.';
 const maxTokens = parseInt(localStorage.getItem('gemini_max_tokens')) || 200;
-
-const prod = state.productDescriptions[String(review.sku)];
-let productInfo = '';
-if (prod) {
-productInfo = `Товар: ${prod.name}
-Ozon ID: ${review.sku}
-${prod.description ? `Описание: ${prod.description.substring(0, 200)}
-` : ''}`;
-}
-
-const userPrompt = `${promptTemplate}
-${productInfo}
-Отзыв:
-Оценка: ${review.rating}/5
-Текст: ${review.text || 'Без текста'}
-Напиши ответ:`;
-const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-const requestBody = {
-contents: [{ parts: [{ text: userPrompt }] }],
-generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens, topP: 0.95, topK: 40, responseMimeType: "text/plain" }
-};
+const prompt = buildReviewPrompt(review, promptTemplate);
 
 try {
-addLog('request', 'Генерация AI (отзыв)', { review_id: reviewId.substring(0, 8) });
-const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
-if (!response.ok) { const err = await response.json(); throw new Error(err.error?.message || 'Ошибка'); }
-const data = await response.json();
-let fullText = '';
-if (data.candidates?.[0]?.content?.parts) fullText = data.candidates[0].content.parts.map(p => p.text).join('');
-fullText = fullText.trim() || 'Не удалось сгенерировать';
+const fullText = await callGeminiGenerate(apiKey, model, maxTokens, prompt, 'Генерация AI (отзыв)', { review_id: reviewId.substring(0, 8) });
 
 review.response = fullText;
 if (state.slowMode) incrementDailyCounter();
@@ -1520,12 +1633,10 @@ if (state.slowMode) incrementDailyCounter();
 const textarea = document.querySelector(`textarea[data-id="${reviewId}"]`);
 if (textarea) { textarea.value = fullText; textarea.classList.add('gemini-filled'); }
 
-addLog('response', 'Ответ сгенерирован (ожидает ручной отправки)', { review_id: reviewId.substring(0, 8), text: fullText.substring(0, 100) });
 showToast('Ответ сгенерирован. Проверьте и нажмите «Отправить»', 'success');
 renderReviewsTable();
 updateDailyCounterDisplay();
 } catch (e) {
-addLog('error', 'Ошибка генерации', e.message);
 showToast(`Ошибка: ${e.message}`, 'error');
 }
 }
@@ -1536,46 +1647,18 @@ if (!apiKey) { showToast('Введите Gemini API Key', 'error'); return; }
 const question = state.questions.find(q => q.id === questionId);
 if (!question) return;
 
-if (state.slowMode) {
-if (!checkDailyLimit()) {
+if (state.slowMode && !checkDailyLimit()) {
 showToast('Превышен дневной лимит 500 запросов', 'error');
 return;
-}
 }
 
 const model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash-latest';
 const promptTemplate = localStorage.getItem('gemini_prompt_questions') || 'Ты — помощник продавца на Ozon.';
 const maxTokens = parseInt(localStorage.getItem('gemini_max_tokens')) || 200;
-
-const prod = state.productDescriptions[String(question.sku)];
-let productInfo = '';
-if (prod) {
-productInfo = `Товар: ${prod.name}
-Ozon ID: ${question.sku}
-${prod.description ? `Описание: ${prod.description.substring(0, 200)}
-` : ''}`;
-}
-
-const userPrompt = `${promptTemplate}
-${productInfo}
-Вопрос покупателя:
-${question.text || 'Без текста'}
-Напиши ответ:`;
-const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-const requestBody = {
-contents: [{ parts: [{ text: userPrompt }] }],
-generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens, topP: 0.95, topK: 40, responseMimeType: "text/plain" }
-};
+const prompt = buildQuestionPrompt(question, promptTemplate);
 
 try {
-addLog('request', 'Генерация AI (вопрос)', { question_id: questionId.substring(0, 8) });
-const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
-if (!response.ok) { const err = await response.json(); throw new Error(err.error?.message || 'Ошибка'); }
-const data = await response.json();
-let fullText = '';
-if (data.candidates?.[0]?.content?.parts) fullText = data.candidates[0].content.parts.map(p => p.text).join('');
-fullText = fullText.trim() || 'Не удалось сгенерировать';
+const fullText = await callGeminiGenerate(apiKey, model, maxTokens, prompt, 'Генерация AI (вопрос)', { question_id: questionId.substring(0, 8) });
 
 question.response = fullText;
 if (state.slowMode) incrementDailyCounter();
@@ -1583,12 +1666,10 @@ if (state.slowMode) incrementDailyCounter();
 const textarea = document.querySelector(`textarea[data-id="${questionId}"]`);
 if (textarea) { textarea.value = fullText; textarea.classList.add('gemini-filled'); }
 
-addLog('response', 'Ответ на вопрос сгенерирован (ожидает ручной отправки)', { question_id: questionId.substring(0, 8), text: fullText.substring(0, 100) });
 showToast('Ответ сгенерирован. Проверьте и нажмите «Отправить»', 'success');
 renderQuestionsTable();
 updateDailyCounterDisplay();
 } catch (e) {
-addLog('error', 'Ошибка генерации', e.message);
 showToast(`Ошибка: ${e.message}`, 'error');
 }
 }
@@ -2099,11 +2180,6 @@ if (state.slowMode) incrementDailyCounter();
 const textarea = document.querySelector(`textarea[data-id="${item.id}"]`);
 if (textarea) { textarea.value = response; textarea.classList.add('gemini-filled'); }
 
-if (state.slowMode && i < itemsToProcess.length - 1) {
-updateGeminiProgress(completed + errors, itemsToProcess.length, `Ожидание лимита (5с)...`);
-await sleep(5500);
-}
-
 } catch (e) { errors++; addLog('error', 'Ошибка генерации', e.message); }
 }
 
@@ -2122,95 +2198,16 @@ async function generateSingleReviewWithAI(review, promptTemplate) {
 const apiKey = document.getElementById('geminiApiKey').value.trim();
 const model = document.getElementById('geminiModel').value;
 const maxTokens = parseInt(document.getElementById('geminiMaxTokens').value) || 200;
-
-const prod = state.productDescriptions[String(review.sku)];
-let productInfo = '';
-if (prod) {
-productInfo = `Товар: ${prod.name}
-Ozon ID: ${review.sku}
-${prod.description ? `Описание: ${prod.description.substring(0, 200)}
-` : ''}`;
-}
-
-const userPrompt = `${promptTemplate}
-${productInfo}
-Отзыв:
-Оценка: ${review.rating}/5
-Текст: ${review.text || 'Без текста'}
-Напиши ответ:`;
-const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-const requestBody = {
-contents: [{ parts: [{ text: userPrompt }] }],
-generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens, topP: 0.95, topK: 40, responseMimeType: "text/plain" },
-safetySettings: [
-{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-{ category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-{ category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-]
-};
-
-try {
-addLog('request', 'Запрос к Gemini (отзыв)', { model, review_id: review.id.substring(0, 8) });
-const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
-if (!response.ok) { const err = await response.json(); addLog('error', 'Ошибка Gemini', err); throw new Error(err.error?.message || 'Ошибка API'); }
-const data = await response.json();
-let fullText = '';
-if (data.candidates && data.candidates.length > 0 && data.candidates[0].content?.parts) {
-fullText = data.candidates[0].content.parts.map(p => p.text).join('');
-}
-fullText = fullText.trim() || 'Не удалось сгенерировать';
-addLog('response', 'Ответ от Gemini', { response: fullText });
-return fullText;
-} catch (e) { addLog('error', 'Ошибка Gemini', e.message); throw new Error(e.message); }
+const prompt = buildReviewPrompt(review, promptTemplate);
+return callGeminiGenerate(apiKey, model, maxTokens, prompt, 'Запрос к Gemini (отзыв)', { model, review_id: review.id.substring(0, 8) });
 }
 
 async function generateSingleQuestionWithAI(question, promptTemplate) {
 const apiKey = document.getElementById('geminiApiKey').value.trim();
 const model = document.getElementById('geminiModel').value;
 const maxTokens = parseInt(document.getElementById('geminiMaxTokens').value) || 200;
-
-const prod = state.productDescriptions[String(question.sku)];
-let productInfo = '';
-if (prod) {
-productInfo = `Товар: ${prod.name}
-Ozon ID: ${question.sku}
-${prod.description ? `Описание: ${prod.description.substring(0, 200)}
-` : ''}`;
-}
-
-const userPrompt = `${promptTemplate}
-${productInfo}
-Вопрос покупателя:
-${question.text || 'Без текста'}
-Напиши ответ:`;
-const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
-const requestBody = {
-contents: [{ parts: [{ text: userPrompt }] }],
-generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens, topP: 0.95, topK: 40, responseMimeType: "text/plain" },
-safetySettings: [
-{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-{ category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-{ category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-]
-};
-
-try {
-addLog('request', 'Запрос к Gemini (вопрос)', { model, question_id: question.id.substring(0, 8) });
-const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
-if (!response.ok) { const err = await response.json(); addLog('error', 'Ошибка Gemini', err); throw new Error(err.error?.message || 'Ошибка API'); }
-const data = await response.json();
-let fullText = '';
-if (data.candidates && data.candidates.length > 0 && data.candidates[0].content?.parts) {
-fullText = data.candidates[0].content.parts.map(p => p.text).join('');
-}
-fullText = fullText.trim() || 'Не удалось сгенерировать';
-addLog('response', 'Ответ от Gemini', { response: fullText });
-return fullText;
-} catch (e) { addLog('error', 'Ошибка Gemini', e.message); throw new Error(e.message); }
+const prompt = buildQuestionPrompt(question, promptTemplate);
+return callGeminiGenerate(apiKey, model, maxTokens, prompt, 'Запрос к Gemini (вопрос)', { model, question_id: question.id.substring(0, 8) });
 }
 
 function updateGeminiProgress(p, t, detail) {
@@ -2237,10 +2234,10 @@ const apiKey = document.getElementById('geminiApiKey').value.trim();
 const model = document.getElementById('geminiModel').value;
 if (!apiKey) return showToast('Введите API ключ', 'error');
 if (!model) return showToast('Сначала обновите список моделей', 'error');
-const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
 addLog('request', 'Тест подключения к Gemini', { model });
 try {
-const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: 'Привет!' }] }] }) });
+const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey }, body: JSON.stringify({ contents: [{ parts: [{ text: 'Привет!' }] }] }) });
 const result = await response.json();
 if (response.ok) { showToast('Gemini подключен!', 'success'); addLog('response', 'Gemini API: OK', result); }
 else { showToast(`Ошибка: ${result.error?.message || response.status}`, 'error'); addLog('error', `Gemini API: ${response.status}`, result); }
@@ -2250,10 +2247,10 @@ else { showToast(`Ошибка: ${result.error?.message || response.status}`, 'e
 async function updateGeminiModels() {
 const apiKey = document.getElementById('geminiApiKey').value.trim();
 if (!apiKey) { showToast('Введите API Key', 'error'); return; }
-const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+const url = `https://generativelanguage.googleapis.com/v1beta/models`;
 addLog('request', 'Запрос списка моделей', { url });
 try {
-const response = await fetch(url);
+const response = await fetch(url, { headers: { 'x-goog-api-key': apiKey } });
 const data = await response.json();
 if (data.models) {
 const select = document.getElementById('geminiModel');
