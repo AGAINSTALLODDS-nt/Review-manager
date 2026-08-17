@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.22</title>
+    <title>Ozon Reviews AI Manager v.0.23</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
@@ -154,7 +154,7 @@
         @keyframes fadeOut { to { opacity: 0; transform: translateY(10px); } }
 
         .checkbox-custom { width: 18px; height: 18px; accent-color: var(--ozon-blue); cursor: pointer; }
-        .tab-btn { padding: 8px 16px; border-radius: 6px; font-weight: 500; transition: all 0.2s; cursor: pointer; user-select: none; }
+        .tab-btn { padding: 8px 16px; border-radius: 6px; font-weight: 500; transition: all 0.2s; cursor: pointer; user-select: none; display: inline-flex; align-items: center; gap: 6px; }
         .tab-btn.active { background: var(--ozon-blue); color: white; }
         .tab-btn:not(.active) { background: transparent; color: var(--ozon-text-muted); }
         .tab-btn:not(.active):hover { background: rgba(0, 91, 255, 0.06); color: var(--ozon-text); }
@@ -213,6 +213,7 @@
         .question-link:hover { color: var(--ozon-blue-dark); }
         .author-name { color: var(--ozon-text); font-size: 0.8rem; font-weight: 500; }
         .answers-count { color: var(--ozon-text-muted); font-size: 0.75rem; }
+        .header-divider { width: 1px; align-self: stretch; background: var(--ozon-border); margin: 4px 2px; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -220,11 +221,12 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="brand-title text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.22
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.23
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
 <div class="flex gap-2 flex-wrap items-center">
+<div class="flex gap-2 items-center" title="Навигация">
 <button onclick="toggleTheme()" class="btn px-4 py-2 glass rounded-lg text-sm flex items-center hover:bg-slate-100 transition" title="Переключить тему">
 <i class="ph ph-moon mr-2" id="themeToggleIcon"></i> <span id="themeToggleLabel">Тёмная тема</span>
 </button>
@@ -234,7 +236,9 @@
 <button onclick="switchTab('templates')" class="btn px-4 py-2 glass rounded-lg text-sm flex items-center hover:bg-slate-100 transition">
 <i class="ph ph-files mr-2"></i> Шаблоны
 </button>
-<div class="w-2 hidden md:block"></div>
+</div>
+<div class="header-divider hidden md:block"></div>
+<div class="flex gap-2 items-center" title="Импорт / экспорт данных">
 <div class="group-btn">
 <select id="exportFormat" class="format-select">
 <option value="json">JSON</option>
@@ -256,14 +260,16 @@
 </button>
 </div>
 <input type="file" id="importFile" accept=".json,.xlsx,.xls,.csv" class="hidden" onchange="importData(this)">
-<button onclick="generateWithAI()" id="btnAI" class="btn btn-gemini px-4 py-2 rounded-lg text-white text-sm font-medium flex items-center" disabled>
+</div>
+<div class="header-divider hidden md:block"></div>
+<div class="flex gap-2 items-center" title="Работа с выбранными строками">
+<button onclick="generateWithAI()" id="btnAI" class="btn btn-gemini px-4 py-2 rounded-lg text-white text-sm font-medium flex items-center" disabled title="Сгенерировать ответы AI для выбранных строк">
 <i class="ph ph-sparkle mr-2"></i> AI
 </button>
-<div class="flex gap-2">
-<button onclick="sendResponses()" class="btn btn-primary px-4 py-2 rounded-lg text-white text-sm font-medium flex items-center" id="btnSend" disabled>
+<button onclick="sendResponses()" class="btn btn-primary px-4 py-2 rounded-lg text-white text-sm font-medium flex items-center" id="btnSend" disabled title="Отправить ответы для выбранных строк на Ozon">
 <i class="ph ph-paper-plane-right mr-2"></i> Отправить
 </button>
-<button onclick="cancelSending()" class="btn btn-danger px-4 py-2 rounded-lg text-white text-sm font-medium flex items-center hidden" id="btnCancel">
+<button onclick="cancelSending()" class="btn btn-danger px-4 py-2 rounded-lg text-white text-sm font-medium flex items-center hidden" id="btnCancel" title="Остановить текущую отправку">
 <i class="ph ph-x mr-2"></i> Отмена
 </button>
 </div>
@@ -281,9 +287,21 @@
 <p class="text-xs text-slate-500 mt-1" id="progressDetail">Инициализация...</p>
 </div>
 
+<div id="aiStatusBar" class="hidden glass rounded-lg p-3 mb-4" style="border-left: 3px solid var(--ozon-purple);">
+<div class="flex justify-between items-center text-xs mb-1">
+<span class="font-medium flex items-center text-purple-400"><i class="ph ph-sparkle spinner mr-2"></i><span id="aiStatusText">Генерация AI...</span></span>
+<div class="flex items-center gap-3">
+<span id="aiStatusPercent" class="text-slate-500">0%</span>
+<button onclick="cancelAIGeneration()" class="text-xs text-red-600 hover:text-red-700 underline">Отмена</button>
+</div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="aiStatusFill" style="background: linear-gradient(90deg, var(--ozon-purple), var(--ozon-blue));"></div></div>
+<p class="text-xs text-slate-500 mt-1" id="aiStatusDetail">Можно продолжать работу — таблица и отправка ответов доступны.</p>
+</div>
+
 <div class="flex gap-4 mb-4 border-b border-slate-300 pb-2">
-<div class="tab-btn active" onclick="switchTab('reviews')" id="tabBtnReviews"> Отзывы</div>
-<div class="tab-btn" onclick="switchTab('questions')" id="tabBtnQuestions">❓ Вопросы</div>
+<div class="tab-btn active" onclick="switchTab('reviews')" id="tabBtnReviews"><i class="ph ph-star"></i> Отзывы</div>
+<div class="tab-btn" onclick="switchTab('questions')" id="tabBtnQuestions"><i class="ph ph-question"></i> Вопросы</div>
 <div class="flex-1"></div>
 <span id="statsDisplay" class="text-xs text-slate-400 flex items-center">Загружено: 0 | Выбрано: 0</span>
 </div>
@@ -587,11 +605,11 @@
 </div>
 <div>
 <label class="text-xs text-slate-400 block mb-1">Промпт для отзывов</label>
-<textarea id="geminiPromptTemplate" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты - помощник продавца на Ozon. Напиши вежливый, профессиональный ответ на отзыв покупателя, всегда старайся разобраться в ситуации. Всегда упоминай конкретный товар в тексте отзыва, чтобы улучшать SEO карточки. Учитывай рейтинг: 4-5 звезд — поблагодари, 3 — нейтрально-вежливый, 1-2 — извинись и предложи решение исходя из отзыва и товара. Если "нет носика / насадки" - скажи, что сам Озон теряет их при доставке. Если проблемы с упаковкой - скажи, что уже ввели доп. упаковку товара. Если маленький объем, пиши, что соответствует указанному в карточке. Ответ должен быть на русском языке, длиной не более 3 предложений. Никогда не предлагай перейти в чат, предлагай дополнить отзыв деталями. Никогда не используй символ —.</textarea>
+<textarea id="geminiPromptTemplate" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты — помощник продавца на Ozon. Напиши вежливый, профессиональный ответ на отзыв покупателя, всегда старайся разобраться в ситуации. Всегда упоминай товар конкретный товар в тексте отзыва, чтобы улучшать SEO карточки. Учитывай рейтинг: если 4-5 звезд — поблагодари, если 3 — нейтрально-вежливый, если 1-2 — извинись и предложи решение. Ответ должен быть на русском языке, длиной не более 2 предложения. Никогда не используй символ —.</textarea>
 </div>
 <div>
 <label class="text-xs text-slate-400 block mb-1">Промпт для вопросов</label>
-<textarea id="geminiPromptQuestions" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты — помощник продавца на Ozon. Ответь на вопрос покупателя о товаре вежливо, профессионально и информативно. Всегда упоминай название конкретного товара. Не упоминай ID. Старайся разобраться в проблеме и дать реалистичный ответ. Ответ должен быть на русском языке, длиной не более 4 предложений. Никогда не используй символ —.</textarea>
+<textarea id="geminiPromptQuestions" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты — помощник продавца на Ozon. Ответь на вопрос покупателя о товаре вежливо, профессионально и информативно. Всегда упоминай конкретный товар. Ответ должен быть на русском языке, длиной не более 2-3 предложений. Никогда не используй символ —. Если вопрос о характеристиках, размере, цвете — дай точный ответ.</textarea>
 </div>
 <div class="pt-2 flex gap-2">
 <button onclick="testGeminiConnection()" class="btn btn-gemini px-4 py-2 rounded text-white text-sm">
@@ -667,28 +685,6 @@
 </div>
 
 <!-- AI Generation Modal -->
-<div id="geminiModal" class="hidden modal-overlay">
-<div class="modal-content">
-<h3 class="text-lg font-semibold mb-4 flex items-center"><i class="ph ph-sparkle mr-2 text-purple-400"></i>Генерация ответов с AI</h3>
-<p class="text-sm text-slate-400 mb-4">Выбрано: <span id="geminiCount" class="text-white font-medium">0</span> <span id="geminiType">отзывов</span></p>
-<p class="text-xs text-amber-400 mb-3"><i class="ph ph-info mr-1"></i>После генерации ответы появятся в таблице. Проверьте и отредактируйте их, затем нажмите «Отправить».</p>
-<div id="geminiProgress" class="hidden mb-4">
-<div class="flex justify-between text-xs mb-1">
-<span id="geminiProgressText">Генерация...</span>
-<span id="geminiProgressPercent">0%</span>
-</div>
-<div class="progress-bar"><div class="progress-fill" id="geminiProgressBar"></div></div>
-<p class="text-xs text-slate-500 mt-1" id="geminiProgressDetail">Обработка...</p>
-</div>
-<div class="flex gap-2 justify-end">
-<button onclick="closeGeminiModal()" class="btn px-4 py-2 glass rounded-lg text-sm">Отмена</button>
-<button onclick="startGeminiGeneration()" id="btnStartGemini" class="btn btn-gemini px-4 py-2 rounded-lg text-white text-sm font-medium flex items-center">
-<i class="ph ph-play mr-2"></i> Начать генерацию
-</button>
-</div>
-</div>
-</div>
-
 <!-- Review Media (video) Modal -->
 <div id="reviewMediaModal" class="hidden modal-overlay" onclick="if(event.target===this) closeReviewMediaModal()">
 <div class="modal-content" style="max-width: 640px;">
@@ -745,6 +741,8 @@ currentTemplateReviewId: null,
 ratingDropdownOpen: false,
 slowMode: true,
 isSendingCancelled: false,
+isGenerating: false,
+isGenerationCancelled: false,
 currentTab: 'reviews'
 };
 
@@ -826,7 +824,7 @@ if (e.key === 'ArrowRight') showReviewPhoto(1);
 }
 });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.22 - Reviews with no written response stay visible instead of vanishing' });
+addLog('info', 'Приложение запущено', { version: 'v.0.23 - Non-blocking AI generation status bar, header regrouping' });
 });
 
 function resetDailyCounter() {
@@ -1907,7 +1905,7 @@ const waitMs = Math.max(0, 60000 - (now - this.timestamps[0]) + 250);
 if (waitMs > 0) {
 if (onWait) onWait(waitMs);
 addLog('info', `Лимит Gemini: ${this.rpm} запросов/мин. Ожидание ${Math.ceil(waitMs / 1000)}с...`);
-const detailEl = document.getElementById('geminiProgressDetail');
+const detailEl = document.getElementById('aiStatusDetail');
 if (detailEl) detailEl.textContent = `Ожидание лимита Gemini (${this.rpm}/мин): ${Math.ceil(waitMs / 1000)}с...`;
 await sleep(waitMs);
 }
@@ -2516,11 +2514,14 @@ document.addEventListener('mousemove', onMove); document.addEventListener('mouse
 
 function generateWithAI() {
 const apiKey = document.getElementById('geminiApiKey').value.trim();
-if (!apiKey) { showToast('Введите Gemini API Key', 'error'); return; }
+if (!apiKey) { showToast('Введите Gemini API Key в Настройках', 'error'); return; }
+
+if (state.isGenerating) { showToast('Генерация уже выполняется — дождитесь завершения или нажмите «Отмена»', 'info'); return; }
 
 let selectedItems;
 let typeText;
-if (state.currentTab === 'reviews') {
+const isReviews = state.currentTab === 'reviews';
+if (isReviews) {
 selectedItems = state.reviews.filter(r => state.selectedIds.has(r.id));
 typeText = 'отзывов';
 } else {
@@ -2528,23 +2529,22 @@ selectedItems = state.questions.filter(q => state.selectedQuestionIds.has(q.id))
 typeText = 'вопросов';
 }
 
-if (selectedItems.length === 0) { showToast('Выберите элементы', 'error'); return; }
-if (!document.getElementById('geminiModel').value) { showToast('Обновите список моделей', 'error'); return; }
+if (selectedItems.length === 0) { showToast('Сначала выберите элементы (меню выделения в шапке таблицы)', 'error'); return; }
+if (!document.getElementById('geminiModel').value) { showToast('Обновите список моделей в Настройках', 'error'); return; }
 
 if (state.slowMode && !checkDailyLimit()) {
 showToast('Превышен дневной лимит 500 запросов. Попробуйте завтра.', 'error');
 return;
 }
 
-document.getElementById('geminiCount').textContent = selectedItems.length;
-document.getElementById('geminiType').textContent = typeText;
-document.getElementById('geminiModal').classList.remove('hidden');
-document.getElementById('geminiProgress').classList.add('hidden');
-document.getElementById('btnStartGemini').disabled = false;
-document.getElementById('btnStartGemini').innerHTML = '<i class="ph ph-play mr-2"></i> Начать генерацию';
+showToast(`Генерация запущена для ${selectedItems.length} ${typeText}. Можно продолжать работу.`, 'info');
+runGeminiGeneration(selectedItems, isReviews);
 }
 
-function closeGeminiModal() { document.getElementById('geminiModal').classList.add('hidden'); }
+function cancelAIGeneration() {
+state.isGenerationCancelled = true;
+document.getElementById('aiStatusDetail').textContent = 'Останавливаю после текущего элемента...';
+}
 
 function getDailyUsageKey() {
 return `ai_usage_${new Date().toISOString().slice(0, 10)}`;
@@ -2575,23 +2575,18 @@ const display = document.getElementById('dailyCounterDisplay');
 if (display) display.textContent = count;
 }
 
-async function startGeminiGeneration() {
-let selectedItems;
-let isReviews = state.currentTab === 'reviews';
-
-if (isReviews) {
-selectedItems = state.reviews.filter(r => state.selectedIds.has(r.id));
-} else {
-selectedItems = state.questions.filter(q => state.selectedQuestionIds.has(q.id));
-}
-
+async function runGeminiGeneration(selectedItems, isReviews) {
 const promptTemplate = isReviews ? 
 document.getElementById('geminiPromptTemplate').value.trim() : 
 document.getElementById('geminiPromptQuestions').value.trim();
 
-document.getElementById('btnStartGemini').disabled = true;
-document.getElementById('btnStartGemini').innerHTML = '<i class="ph ph-spinner spinner mr-2"></i> Генерация...';
-document.getElementById('geminiProgress').classList.remove('hidden');
+state.isGenerating = true;
+state.isGenerationCancelled = false;
+const btnAI = document.getElementById('btnAI');
+btnAI.disabled = true;
+btnAI.innerHTML = '<i class="ph ph-spinner spinner mr-2"></i> Генерация...';
+document.getElementById('aiStatusText').textContent = `Генерация AI (${isReviews ? 'отзывы' : 'вопросы'})`;
+document.getElementById('aiStatusBar').classList.remove('hidden');
 
 let itemsToProcess = [...selectedItems];
 if (state.slowMode) {
@@ -2601,7 +2596,7 @@ const remaining = dailyLimit - currentUsage;
 
 if (remaining <= 0) {
 showToast('Дневной лимит исчерпан (500/500). Попробуйте завтра.', 'error');
-closeGeminiModal();
+finishGeminiGeneration(isReviews, 0, 0, 0);
 return;
 }
 
@@ -2612,9 +2607,15 @@ itemsToProcess = itemsToProcess.slice(0, remaining);
 }
 }
 
-let completed = 0, errors = 0;
+let completed = 0, errors = 0, cancelled = 0;
 
 for (let i = 0; i < itemsToProcess.length; i++) {
+if (state.isGenerationCancelled) {
+cancelled = itemsToProcess.length - i;
+addLog('info', `Генерация отменена пользователем. Готово: ${completed}, Ошибок: ${errors}, Осталось: ${cancelled}`);
+break;
+}
+
 const item = itemsToProcess[i];
 try {
 updateGeminiProgress(completed + errors, itemsToProcess.length, `Обработка ${item.id.substring(0, 8)}...`);
@@ -2630,21 +2631,35 @@ completed++;
 
 if (state.slowMode) incrementDailyCounter();
 
+// The table may have been re-rendered (or the person may be on the other
+// tab) since this batch started — updating both the live textarea (if
+// still present) and item.response (state) means the result is correct
+// either way: visible immediately if the row is on screen, and picked up
+// on the next render otherwise.
 const textarea = document.querySelector(`textarea[data-id="${item.id}"]`);
 if (textarea) { textarea.value = response; textarea.classList.add('gemini-filled'); }
 
 } catch (e) { errors++; addLog('error', 'Ошибка генерации', e.message); }
 }
 
-updateGeminiProgress(completed, itemsToProcess.length, 'Готово!');
-document.getElementById('btnStartGemini').innerHTML = '<i class="ph ph-check mr-2"></i> Завершено';
-setTimeout(() => {
-closeGeminiModal();
+finishGeminiGeneration(isReviews, completed, errors, cancelled);
+}
+
+function finishGeminiGeneration(isReviews, completed, errors, cancelled) {
+state.isGenerating = false;
+const btnAI = document.getElementById('btnAI');
+btnAI.disabled = false;
+btnAI.innerHTML = '<i class="ph ph-sparkle mr-2"></i> AI';
+document.getElementById('aiStatusBar').classList.add('hidden');
+
 if (isReviews) renderReviewsTable(); else renderQuestionsTable();
-showToast(`Сгенерировано: ${completed}, Ошибок: ${errors}. Проверьте ответы и нажмите «Отправить»`, completed > 0 ? 'success' : 'error');
-addLog('info', 'Генерация завершена (ожидает ручной отправки)', { completed, errors });
+
+let msg = `Сгенерировано: ${completed} | Ошибки: ${errors}`;
+if (cancelled > 0) msg += ` | Отменено: ${cancelled}`;
+if (completed > 0) msg += `. Проверьте ответы и нажмите «Отправить»`;
+showToast(msg, completed > 0 ? 'success' : 'error');
+addLog('info', 'Генерация завершена (ожидает ручной отправки)', { completed, errors, cancelled });
 updateDailyCounterDisplay();
-}, 1000);
 }
 
 async function generateSingleReviewWithAI(review, promptTemplate) {
@@ -2665,10 +2680,9 @@ return callGeminiGenerate(apiKey, model, maxTokens, prompt, 'Запрос к Gem
 
 function updateGeminiProgress(p, t, detail) {
 const percent = Math.round((p/t)*100);
-document.getElementById('geminiProgressBar').style.width = `${percent}%`;
-document.getElementById('geminiProgressPercent').textContent = `${percent}%`;
-document.getElementById('geminiProgressText').textContent = `Генерация: ${p} / ${t}`;
-document.getElementById('geminiProgressDetail').textContent = detail;
+document.getElementById('aiStatusFill').style.width = `${percent}%`;
+document.getElementById('aiStatusPercent').textContent = `${percent}% (${p} / ${t})`;
+document.getElementById('aiStatusDetail').textContent = detail;
 }
 
 async function testOzonConnection() {
