@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.23</title>
+    <title>Ozon Reviews AI Manager v.0.24</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
@@ -221,7 +221,7 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="brand-title text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.23
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.24
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
@@ -824,7 +824,7 @@ if (e.key === 'ArrowRight') showReviewPhoto(1);
 }
 });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.23 - Non-blocking AI generation status bar, header regrouping' });
+addLog('info', 'Приложение запущено', { version: 'v.0.24 - Fix Gemini rate-limit race condition (serialized fixed-interval queue)' });
 });
 
 function resetDailyCounter() {
@@ -1890,27 +1890,44 @@ const GEMINI_SAFETY_SETTINGS = [
 { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
 ];
 
-// Sliding-window rate limiter matching Gemini free-tier limits (15 RPM).
-// Only throttles when Slow Mode is enabled; waits just long enough to stay
-// under the limit instead of always sleeping a fixed amount.
+// Serialized rate limiter for the Gemini free tier (15 RPM). Every acquire()
+// call — whether from the background batch loop or a per-row single-click
+// "AI" button firing at the same time — is chained onto one shared promise
+// queue, so only one caller can ever check-and-commit its request slot at a
+// time. This is deliberately NOT a sliding-window counter: a window-based
+// check-then-commit design lets multiple concurrent callers all pass the
+// check before any of them records itself, then all fire together once their
+// (nearly identical) wait elapses — a classic thundering-herd race, and
+// exactly what caused real bursts above Gemini's 15 RPM cap in testing.
+// A fixed minimum spacing between requests also means the wait per item is
+// constant regardless of how many items are queued — no "the more you
+// process, the longer each one waits" effect.
 const geminiRateLimiter = {
-timestamps: [],
-rpm: 15,
-async acquire(onWait) {
-if (!state.slowMode) return;
+queue: Promise.resolve(),
+lastRequestTime: 0,
+// ~10.9 requests/min — matches the fixed delay used in the original,
+// field-proven implementation (reliably processed 500+ reviews without
+// hitting Gemini's rate limit). Comfortably under the 15 RPM cap, leaving
+// headroom for occasional manual calls that don't go through this queue
+// (e.g. "Тест Gemini" / refreshing the model list in Settings).
+minIntervalMs: 5500,
+acquire(onWait) {
+this.queue = this.queue.then(() => this._acquireOne(onWait));
+return this.queue;
+},
+async _acquireOne(onWait) {
+if (!state.slowMode) { this.lastRequestTime = Date.now(); return; }
 const now = Date.now();
-this.timestamps = this.timestamps.filter(t => now - t < 60000);
-if (this.timestamps.length >= this.rpm) {
-const waitMs = Math.max(0, 60000 - (now - this.timestamps[0]) + 250);
-if (waitMs > 0) {
+const elapsed = now - this.lastRequestTime;
+if (elapsed < this.minIntervalMs) {
+const waitMs = this.minIntervalMs - elapsed;
 if (onWait) onWait(waitMs);
-addLog('info', `Лимит Gemini: ${this.rpm} запросов/мин. Ожидание ${Math.ceil(waitMs / 1000)}с...`);
+addLog('info', `Пауза между запросами к Gemini: ${(waitMs / 1000).toFixed(1)}с...`);
 const detailEl = document.getElementById('aiStatusDetail');
-if (detailEl) detailEl.textContent = `Ожидание лимита Gemini (${this.rpm}/мин): ${Math.ceil(waitMs / 1000)}с...`;
+if (detailEl) detailEl.textContent = `Пауза между запросами к Gemini: ${(waitMs / 1000).toFixed(1)}с...`;
 await sleep(waitMs);
 }
-}
-this.timestamps.push(Date.now());
+this.lastRequestTime = Date.now();
 }
 };
 
