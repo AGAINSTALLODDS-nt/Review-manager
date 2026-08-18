@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.24</title>
+    <title>Ozon Reviews AI Manager v.0.25</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/index.min.css">
     <style>
         :root {
@@ -221,7 +221,7 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="brand-title text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.24
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.25
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
@@ -824,7 +824,7 @@ if (e.key === 'ArrowRight') showReviewPhoto(1);
 }
 });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.24 - Fix Gemini rate-limit race condition (serialized fixed-interval queue)' });
+addLog('info', 'Приложение запущено', { version: 'v.0.25 - Fix XLSX not defined (stale CDN version), CSV export/import no longer depends on XLSX' });
 });
 
 function resetDailyCounter() {
@@ -2380,7 +2380,7 @@ reader.onload = (e) => {
 try {
 let data = [];
 if (format === 'json') { data = JSON.parse(e.target.result); }
-else if (format === 'excel') { const wb = XLSX.read(e.target.result, { type: 'array' }); data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); }
+else if (format === 'excel') { requireXLSX(); const wb = XLSX.read(e.target.result, { type: 'array' }); data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); }
 else if (format === 'csv') {
 const text = e.target.result, lines = text.trim().split('\n'), headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
 for (let i = 1; i < lines.length; i++) {
@@ -2507,11 +2507,29 @@ function downloadFile(data, filename, type) {
 const blob = new Blob([JSON.stringify(data, null, 2)], { type });
 const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
 }
+function requireXLSX() {
+if (typeof XLSX === 'undefined') {
+throw new Error('Библиотека Excel (XLSX) не загрузилась — проверьте интернет-соединение или отключите блокировщик рекламы для этой страницы, затем обновите страницу. JSON и CSV работают независимо от неё.');
+}
+}
 function exportToExcel(data, filename) {
+requireXLSX();
 const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Data'); XLSX.writeFile(wb, filename);
 }
+// Deliberately implemented without XLSX — this keeps CSV export/import working
+// as a genuine fallback even if the XLSX library fails to load (network
+// issue, ad blocker, CDN version change), which is exactly the scenario this
+// is meant to protect against.
+function csvEscapeCell(value) {
+const s = value === null || value === undefined ? '' : String(value);
+return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
 function exportToCSV(data, filename) {
-const csv = XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(data));
+if (data.length === 0) { showToast('Нет данных для экспорта', 'error'); return; }
+const headers = Object.keys(data[0]);
+const lines = [headers.map(csvEscapeCell).join(',')];
+data.forEach(row => lines.push(headers.map(h => csvEscapeCell(row[h])).join(',')));
+const csv = lines.join('\r\n');
 const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
 }
 
