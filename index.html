@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.29</title>
+    <title>Ozon Reviews AI Manager v.0.25</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
@@ -214,9 +214,6 @@
         .author-name { color: var(--ozon-text); font-size: 0.8rem; font-weight: 500; }
         .answers-count { color: var(--ozon-text-muted); font-size: 0.75rem; }
         .header-divider { width: 1px; align-self: stretch; background: var(--ozon-border); margin: 4px 2px; }
-        .provider-inactive { opacity: 0.55; }
-        .provider-inactive input:not(#providerCheckGemini):not(#providerCheckGigachat),
-        .provider-inactive select, .provider-inactive textarea, .provider-inactive button { pointer-events: none; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -224,7 +221,7 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="brand-title text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.29
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.25
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
@@ -554,31 +551,24 @@
 
 <!-- TAB SETTINGS -->
 <div id="tabSettings" class="hidden fade-in">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 <div class="glass rounded-xl p-5">
 <h3 class="font-semibold mb-4 text-lg flex items-center"><i class="ph ph-storefront mr-2"></i> Ozon Seller API</h3>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+<div class="space-y-3">
 <div><label class="text-xs text-slate-400 block mb-1">Client-ID</label><input type="text" id="ozonClientId" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="Ваш Client-ID"></div>
 <div><label class="text-xs text-slate-400 block mb-1">API-Key</label><input type="password" id="ozonApiKey" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="Ваш API-Key"></div>
 <div><label class="text-xs text-slate-400 block mb-1">CORS Proxy</label><input type="text" id="ozonCorsProxy" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="https://corsproxy.io/?"></div>
 <div><label class="text-xs text-slate-400 block mb-1">Макс. страниц загрузки</label><input type="number" id="maxPages" class="w-24 bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" value="5" min="1" max="20">
 <p class="text-[10px] text-slate-500 mt-1">Рекомендуется 5-10 страниц для полного списка</p></div>
-</div>
-<div class="pt-3">
+<div class="pt-2 flex gap-2">
 <button onclick="testOzonConnection()" class="btn btn-primary px-4 py-2 rounded text-white text-sm">
 <i class="ph ph-plugs mr-1"></i> Тест подключения
 </button>
 </div>
 </div>
-
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-<div class="glass rounded-xl p-5" id="geminiProviderCard">
-<h3 class="font-semibold mb-4 text-lg flex items-center justify-between">
-<span class="flex items-center"><i class="ph ph-sparkle mr-2 text-purple-400"></i> Google Gemini API</span>
-<label class="flex items-center gap-2 text-xs font-normal cursor-pointer" title="Активный провайдер AI-генерации. Одновременно может быть выбран только один.">
-<input type="checkbox" id="providerCheckGemini" class="checkbox-custom" onchange="setAIProvider('gemini')">
-<span>Использовать</span>
-</label>
-</h3>
+</div>
+<div class="glass rounded-xl p-5">
+<h3 class="font-semibold mb-4 text-lg flex items-center"><i class="ph ph-sparkle mr-2 text-purple-400"></i> Google Gemini API</h3>
 <div class="space-y-3">
 <div><label class="text-xs text-slate-400 block mb-1">API Key</label><input type="password" id="geminiApiKey" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="Введите ваш API ключ Gemini"></div>
 <div>
@@ -599,89 +589,15 @@
 </label>
 <div>
 <div class="text-sm font-medium text-blue-700">Slow Mode (Лимиты API)</div>
-<div class="text-[10px] text-slate-500">15 запросов/мин, 500/день — бесплатный лимит для моделей типа Gemini 3.5 Flash Lite. Для других моделей лимиты могут отличаться. Применяется к активному провайдеру AI. Отправка только вручную кнопкой «Отправить».</div>
+<div class="text-[10px] text-slate-500">15 запросов/мин, 500/день — бесплатный лимит для моделей типа Gemini 3.5 Flash Lite. Для других моделей лимиты могут отличаться. Отправка только вручную кнопкой «Отправить».</div>
 </div>
 </div>
 <div class="flex items-center justify-between mt-1">
     <span class="text-[10px] text-slate-500">Использовано запросов сегодня: <span id="dailyCounterDisplay" class="text-amber-600">0</span> / 500</span>
     <button onclick="resetDailyCounter()" class="text-[10px] text-red-600 hover:text-red-700 underline ml-2">Сбросить лимит</button>
 </div>
-<div class="pt-2 flex gap-2">
-<button onclick="testGeminiConnection()" class="btn btn-gemini px-4 py-2 rounded text-white text-sm">
-<i class="ph ph-plugs mr-1"></i> Тест Gemini
-</button>
-</div>
-</div>
-</div>
-
-<div class="glass rounded-xl p-5" id="gigachatProviderCard">
-<h3 class="font-semibold mb-4 text-lg flex items-center justify-between">
-<span class="flex items-center"><i class="ph ph-sparkle mr-2 text-blue-400"></i> Sber GigaChat API</span>
-<label class="flex items-center gap-2 text-xs font-normal cursor-pointer" title="Активный провайдер AI-генерации. Одновременно может быть выбран только один.">
-<input type="checkbox" id="providerCheckGigachat" class="checkbox-custom" onchange="setAIProvider('gigachat')">
-<span>Использовать</span>
-</label>
-</h3>
-<div class="space-y-3">
 <div>
-<label class="text-xs text-slate-400 block mb-1">Ключ авторизации (Base64 Client ID:Client Secret)</label>
-<input type="password" id="gigachatAuthKey" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="Из личного кабинета GigaChat API">
-</div>
-<div class="grid grid-cols-2 gap-2">
-<div>
-<label class="text-xs text-slate-400 block mb-1">Scope</label>
-<select id="gigachatScope" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition">
-<option value="GIGACHAT_API_PERS">Физлицо (PERS)</option>
-<option value="GIGACHAT_API_B2B">ИП/юрлицо, пакет (B2B)</option>
-<option value="GIGACHAT_API_CORP">ИП/юрлицо, pay-as-you-go (CORP)</option>
-</select>
-</div>
-<div>
-<label class="text-xs text-slate-400 block mb-1">Модель</label>
-<div class="flex gap-2">
-<select id="gigachatModel" class="flex-1 bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition">
-<option value="GigaChat">GigaChat (Lite)</option>
-<option value="GigaChat-2">GigaChat-2 (Lite)</option>
-<option value="GigaChat-Pro">GigaChat-Pro</option>
-<option value="GigaChat-2-Pro">GigaChat-2-Pro</option>
-<option value="GigaChat-Max">GigaChat-Max</option>
-<option value="GigaChat-2-Max">GigaChat-2-Max</option>
-<option value="GigaChat-3-Ultra">GigaChat-3-Ultra</option>
-</select>
-<button onclick="updateGigaChatModels()" class="btn btn-purple px-3 py-2 rounded text-white text-xs" title="Обновить список моделей">
-<i class="ph ph-arrows-clockwise"></i>
-</button>
-</div>
-</div>
-</div>
-<div>
-<label class="text-xs text-slate-400 block mb-1">CORS Proxy</label>
-<input type="text" id="gigachatCorsProxy" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="https://corsproxy.io/?">
-<p class="text-[10px] text-slate-500 mt-1">Публичные прокси (corsproxy.io и подобные) часто не справляются с нестандартным портом 9443 и заголовком RqUID — если получаете «Failed to fetch», надёжнее развернуть свой мини-релей на Cloudflare Workers (2 минуты, бесплатно) — см. кнопку «Помощь с прокси» ниже.</p>
-<button onclick="document.getElementById('workerHelpModal').classList.remove('hidden')" class="text-[10px] text-blue-600 hover:text-blue-700 underline mt-1">Помощь с прокси (Cloudflare Worker)</button>
-</div>
-<p class="text-[10px] text-slate-500">Промпты и лимит токенов — общие для Gemini и GigaChat, см. поля ниже в карточке Gemini.</p>
-<div class="p-2 bg-slate-50/50 rounded border border-slate-300">
-<div class="flex items-center justify-between mb-1">
-<span class="text-xs font-medium text-blue-700">Остаток токенов (Freemium, /v1/balance)</span>
-<button onclick="checkGigaChatBalance()" class="text-[10px] text-blue-600 hover:text-blue-700 underline">Проверить</button>
-</div>
-<div id="gigachatBalanceDisplay" class="text-[10px] text-slate-500">Не проверялось в этой сессии. Лимиты Freemium делятся по тиру модели (Lite/Pro/Max/Ultra) и обновляются раз в 12 месяцев — RPM-лимитов у GigaChat нет, только общий бюджет токенов.</div>
-</div>
-<div class="pt-2 flex gap-2">
-<button onclick="testGigaChatConnection()" class="btn px-4 py-2 rounded text-white text-sm" style="background: #0d6efd;">
-<i class="ph ph-plugs mr-1"></i> Тест GigaChat
-</button>
-</div>
-</div>
-</div>
-</div>
-
-<div class="glass rounded-xl p-5 mt-4">
-<h3 class="font-semibold mb-4 text-lg flex items-center"><i class="ph ph-chat-text mr-2 text-purple-400"></i> Промпты для AI (общие для Gemini и GigaChat)</h3>
-<div class="space-y-3">
-<div>
-<label class="text-xs text-slate-400 block mb-1">Лимит токенов ответа</label>
+<label class="text-xs text-slate-400 block mb-1">Лимит токенов</label>
 <div class="flex items-center gap-4">
 <input type="number" id="geminiMaxTokens" class="w-24 bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="200" min="10" max="2048">
 <span class="text-[10px] text-slate-500">Для 2-3 предложений значение 150–200 — золотая середина.</span>
@@ -694,6 +610,12 @@
 <div>
 <label class="text-xs text-slate-400 block mb-1">Промпт для вопросов</label>
 <textarea id="geminiPromptQuestions" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:border-blue-500 outline-none transition h-24 resize-y">Ты — помощник продавца на Ozon. Ответь на вопрос покупателя о товаре вежливо, профессионально и информативно. Всегда упоминай конкретный товар. Ответ должен быть на русском языке, длиной не более 2-3 предложений. Никогда не используй символ —. Если вопрос о характеристиках, размере, цвете — дай точный ответ.</textarea>
+</div>
+<div class="pt-2 flex gap-2">
+<button onclick="testGeminiConnection()" class="btn btn-gemini px-4 py-2 rounded text-white text-sm">
+<i class="ph ph-plugs mr-1"></i> Тест Gemini
+</button>
+</div>
 </div>
 </div>
 </div>
@@ -797,50 +719,6 @@
 </div>
 </div>
 
-<!-- Cloudflare Worker CORS relay help modal -->
-<div id="workerHelpModal" class="hidden modal-overlay" onclick="if(event.target===this) document.getElementById('workerHelpModal').classList.add('hidden')">
-<div class="modal-content" style="max-width: 720px;">
-<h3 class="text-lg font-semibold mb-3 flex items-center justify-between">
-<span><i class="ph ph-cloud mr-2 text-blue-400"></i>Свой CORS-релей на Cloudflare Workers</span>
-<button onclick="document.getElementById('workerHelpModal').classList.add('hidden')" class="text-xs text-slate-500 hover:text-red-600"><i class="ph ph-x"></i></button>
-</h3>
-<p class="text-sm text-slate-700 mb-3">Публичные CORS-прокси часто не справляются с нестандартным портом (<code>:9443</code> у эндпоинта токена GigaChat) и с нестандартными заголовками (<code>RqUID</code>) — браузер может блокировать запрос ещё на этапе preflight, до того как прокси вообще получит шанс его переслать. Свой Worker решает это радикально: запрос от Worker к Sberbank идёт сервер-сервер, где браузерный CORS вообще не участвует.</p>
-<ol class="text-sm text-slate-700 space-y-2 list-decimal list-inside mb-4">
-<li>Зайдите на <a href="https://workers.cloudflare.com/" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline">workers.cloudflare.com</a>, войдите/зарегистрируйтесь (бесплатно).</li>
-<li>Создайте новый Worker, вставьте код ниже вместо шаблонного и нажмите «Deploy».</li>
-<li>Скопируйте выданный адрес вида <code>https://ваш-worker.ваш-аккаунт.workers.dev</code>.</li>
-<li>В поле «CORS Proxy» карточки GigaChat впишите этот адрес с суффиксом <code>/?url=</code>, например: <code>https://ваш-worker.workers.dev/?url=</code></li>
-</ol>
-<div class="json-viewer" style="max-height: 260px; white-space: pre; overflow: auto;">export default {
-  async fetch(request) {
-    const cors = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': '*',
-    };
-    if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
-
-    const target = new URL(request.url).searchParams.get('url');
-    if (!target) return new Response('Missing ?url=', { status: 400, headers: cors });
-
-    const headers = new Headers(request.headers);
-    headers.delete('host');
-    const init = {
-      method: request.method,
-      headers,
-      body: ['GET', 'HEAD'].includes(request.method) ? undefined : await request.text(),
-    };
-
-    const resp = await fetch(target, init);
-    const respHeaders = new Headers(resp.headers);
-    Object.entries(cors).forEach(([k, v]) => respHeaders.set(k, v));
-    return new Response(resp.body, { status: resp.status, headers: respHeaders });
-  }
-}</div>
-<p class="text-[11px] text-slate-500 mt-3">Этот же Worker подойдёт и для Ozon (можно использовать один адрес в обоих полях «CORS Proxy»).</p>
-</div>
-</div>
-
 <script>
 let state = {
 reviews: [],
@@ -865,10 +743,6 @@ slowMode: true,
 isSendingCancelled: false,
 isGenerating: false,
 isGenerationCancelled: false,
-aiProvider: 'gemini',
-gigachatAccessToken: null,
-gigachatTokenExpiresAt: 0,
-gigachatTokensUsedEstimate: {},
 currentTab: 'reviews'
 };
 
@@ -950,7 +824,7 @@ if (e.key === 'ArrowRight') showReviewPhoto(1);
 }
 });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.29 - GigaChat CORS diagnosis + built-in Cloudflare Worker relay guide' });
+addLog('info', 'Приложение запущено', { version: 'v.0.25 - Fix XLSX not defined (stale CDN version), CSV export/import no longer depends on XLSX' });
 });
 
 function resetDailyCounter() {
@@ -972,13 +846,6 @@ document.getElementById('geminiPromptTemplate').value = localStorage.getItem('ge
 document.getElementById('geminiPromptQuestions').value = localStorage.getItem('gemini_prompt_questions') || 'Ты — помощник продавца на Ozon. Ответь на вопрос покупателя о товаре вежливо, профессионально и информативно. Всегда упоминай конкретный товар. Ответ должен быть на русском языке, длиной не более 2-3 предложений. Никогда не используй символ —.';
 document.getElementById('maxPages').value = localStorage.getItem('max_pages') || '5';
 
-document.getElementById('gigachatAuthKey').value = localStorage.getItem('gigachat_authKey') || '';
-document.getElementById('gigachatScope').value = localStorage.getItem('gigachat_scope') || 'GIGACHAT_API_PERS';
-document.getElementById('gigachatModel').value = localStorage.getItem('gigachat_model') || 'GigaChat';
-document.getElementById('gigachatCorsProxy').value = localStorage.getItem('gigachat_corsProxy') || '';
-
-setAIProvider(localStorage.getItem('ai_provider') || 'gemini', false);
-
 const savedSlowMode = localStorage.getItem('slow_mode');
 state.slowMode = savedSlowMode !== 'false';
 document.getElementById('slowModeToggle').checked = state.slowMode;
@@ -997,33 +864,9 @@ localStorage.setItem('gemini_prompt_questions', document.getElementById('geminiP
 localStorage.setItem('max_pages', document.getElementById('maxPages').value.trim());
 localStorage.setItem('slow_mode', state.slowMode.toString());
 
-localStorage.setItem('gigachat_authKey', document.getElementById('gigachatAuthKey').value.trim());
-localStorage.setItem('gigachat_scope', document.getElementById('gigachatScope').value);
-localStorage.setItem('gigachat_model', document.getElementById('gigachatModel').value);
-localStorage.setItem('gigachat_corsProxy', document.getElementById('gigachatCorsProxy').value.trim());
-localStorage.setItem('ai_provider', state.aiProvider);
-
 showToast('Настройки сохранены', 'success');
 addLog('info', 'Настройки сохранены', { keys: Object.keys(localStorage).length });
 updateStats();
-}
-
-// Exactly one AI provider is active at a time. Both provider checkboxes are
-// independent checkboxes in the markup (not a native radio group), so this
-// enforces the mutual exclusivity in JS and dims/disables whichever card
-// isn't selected.
-function setAIProvider(provider, persist = true) {
-state.aiProvider = provider;
-document.getElementById('providerCheckGemini').checked = provider === 'gemini';
-document.getElementById('providerCheckGigachat').checked = provider === 'gigachat';
-document.getElementById('geminiProviderCard').classList.toggle('provider-inactive', provider !== 'gemini');
-document.getElementById('gigachatProviderCard').classList.toggle('provider-inactive', provider !== 'gigachat');
-if (persist) {
-showToast(`Активный провайдер AI: ${provider === 'gigachat' ? 'Sber GigaChat' : 'Google Gemini'}`, 'info');
-if (provider === 'gigachat' && document.getElementById('gigachatAuthKey').value.trim()) {
-checkGigaChatBalance();
-}
-}
 }
 
 function updateSlowModeStatus() {
@@ -1051,33 +894,26 @@ if (tab === 'templates') renderTemplatesList();
 updateStats();
 }
 
-// Shared by any API that needs an optional CORS proxy in front of it
-// (Ozon, GigaChat). See getOzonUrl's original comment: corsproxy.io needs
-// its target passed as a `url=` query parameter, not naively concatenated,
-// or it can mishandle the POST body/headers.
-function buildProxiedUrl(target, proxyRaw) {
-const proxy = (proxyRaw || '').trim();
+function getOzonUrl(path) {
+const target = `https://api-seller.ozon.ru${path}`;
+const proxy = document.getElementById('ozonCorsProxy').value.trim();
 if (!proxy) return target;
 
+// corsproxy.io expects the target as a `url=` query parameter
+// (https://corsproxy.io/?url=<encoded-target>). Naively concatenating the
+// target after the domain — which is what a plain string prefix produces —
+// is not the documented format and can cause the proxy to mishandle the
+// POST body, silently dropping filters/pagination while still returning
+// a 200 response with unfiltered data. Normalize to the documented form
+// regardless of whether the person included the trailing "?url=" themselves.
 if (/corsproxy\.io/i.test(proxy)) {
 const base = proxy.replace(/\/?(\?(url=)?)?$/i, '');
 return `${base}/?url=${encodeURIComponent(target)}`;
 }
 
-// Query-param-style proxy (e.g. a custom Worker/relay using "?url=" or
-// similar) — percent-encode the target the same way as corsproxy.io, since
-// raw concatenation here can break the proxy's own query-string parsing.
-if (proxy.endsWith('=')) {
-return `${proxy}${encodeURIComponent(target)}`;
-}
-
-return proxy.endsWith('/') ? `${proxy}${target}` : `${proxy}/${target}`;
-}
-
-function getOzonUrl(path) {
-const target = `https://api-seller.ozon.ru${path}`;
-const proxy = document.getElementById('ozonCorsProxy').value;
-return buildProxiedUrl(target, proxy);
+// Generic prefix-style proxy (e.g. a custom Cloudflare Worker/relay) —
+// keep the simple concatenation behaviour other proxies rely on.
+return proxy.endsWith('/') || proxy.endsWith('=') ? `${proxy}${target}` : `${proxy}/${target}`;
 }
 
 function getAuthHeaders() {
@@ -1120,8 +956,7 @@ document.getElementById('statsDisplay').textContent = `Загружено: ${loa
 document.getElementById('btnExport').disabled = inTable === 0;
 document.getElementById('btnImport').disabled = inTable === 0;
 document.getElementById('btnSend').disabled = selected === 0;
-const activeProviderKey = state.aiProvider === 'gigachat' ? 'gigachat_authKey' : 'gemini_apiKey';
-document.getElementById('btnAI').disabled = selected === 0 || !localStorage.getItem(activeProviderKey);
+document.getElementById('btnAI').disabled = selected === 0 || !localStorage.getItem('gemini_apiKey');
 // Removed dependency on btnSaveCurrentAsTemplate as it was removed from UI
 }
 
@@ -2096,225 +1931,6 @@ this.lastRequestTime = Date.now();
 }
 };
 
-// ---- Sber GigaChat integration ----
-// GigaChat uses OAuth2 client-credentials: a Base64 "Authorization key" (from
-// the GigaChat personal cabinet) is exchanged for a short-lived Access token
-// (30 min) at a DIFFERENT host than the actual API, so it needs its own URL
-// builders and its own CORS proxy field.
-
-function uuidv4() {
-if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-return v.toString(16);
-});
-}
-
-function getGigaChatAuthUrl() {
-return buildProxiedUrl('https://ngw.devices.sberbank.ru:9443/api/v2/oauth', document.getElementById('gigachatCorsProxy').value);
-}
-function getGigaChatApiUrl(path) {
-return buildProxiedUrl(`https://api.giga.chat${path}`, document.getElementById('gigachatCorsProxy').value);
-}
-
-// The Access token is cached in memory only (not localStorage — it's
-// short-lived and there's no benefit to persisting it across reloads) and
-// transparently refreshed a little before it actually expires.
-async function fetchGigaChatToken(authKey, scope, url) {
-return fetch(url, {
-method: 'POST',
-headers: {
-'Content-Type': 'application/x-www-form-urlencoded',
-'Accept': 'application/json',
-'RqUID': uuidv4(),
-'Authorization': `Basic ${authKey}`
-},
-body: 'scope=' + encodeURIComponent(scope || 'GIGACHAT_API_PERS')
-});
-}
-
-async function ensureGigaChatToken(authKey, scope) {
-const now = Date.now();
-if (state.gigachatAccessToken && now < state.gigachatTokenExpiresAt - 10000) {
-return state.gigachatAccessToken;
-}
-if (!authKey) throw new Error('Введите ключ авторизации GigaChat в Настройках');
-
-const directUrl = 'https://ngw.devices.sberbank.ru:9443/api/v2/oauth';
-const proxiedUrl = getGigaChatAuthUrl();
-const usingProxy = proxiedUrl !== directUrl;
-
-let res, networkError, usedDirectFallback = false;
-addLog('request', 'Получение токена GigaChat', { scope, url: proxiedUrl });
-try {
-res = await fetchGigaChatToken(authKey, scope, proxiedUrl);
-} catch (e) {
-networkError = e;
-}
-
-// Cloudflare edge errors (520-529, including 522 "connection timed out")
-// mean the PROXY itself failed to reach Sberbank — very often because
-// public CORS proxies refuse to connect to non-standard ports (9443 here),
-// not that GigaChat rejected anything. If that happens, retry once hitting
-// Sberbank directly: this either works outright (no proxy needed for this
-// endpoint) or fails with a genuine CORS error, which tells us definitively
-// which case we're in instead of guessing.
-const proxyEdgeFailed = networkError || (res && res.status >= 520 && res.status <= 529);
-if (usingProxy && proxyEdgeFailed) {
-const reason = res ? `HTTP ${res.status}` : networkError.message;
-addLog('info', `Прокси не смог подключиться к GigaChat (${reason}). Пробую напрямую, без прокси...`);
-try {
-res = await fetchGigaChatToken(authKey, scope, directUrl);
-networkError = null;
-usedDirectFallback = true;
-addLog('info', 'Прямое подключение к GigaChat сработало — прокси для получения токена не потребовался.');
-} catch (e2) {
-addLog('error', 'Прямое подключение тоже не удалось (похоже на CORS)', e2.message);
-throw new Error(`Не удалось получить токен GigaChat ни через прокси (${reason}), ни напрямую (${e2.message}). Похоже на настоящий CORS-запрет браузера на заголовок RqUID при preflight-проверке — публичные прокси плохо с этим справляются. Разверните свой мини-релей на Cloudflare Workers (кнопка «Помощь с прокси» в настройках GigaChat) — это решает проблему полностью, так как запрос от Worker к Sberbank идёт сервер-сервер, минуя браузерный CORS.`);
-}
-}
-
-if (networkError) {
-addLog('error', 'Сетевая ошибка при получении токена GigaChat', networkError.message);
-throw new Error(`Сетевая ошибка при получении токена GigaChat: ${networkError.message}. Если это происходит и с прокси, и без него — скорее всего, браузер блокирует preflight-запрос из-за заголовка RqUID (настоящий CORS-запрет, не обойти на стороне приложения). Разверните свой мини-релей на Cloudflare Workers — кнопка «Помощь с прокси» в настройках GigaChat.`);
-}
-if (!res.ok) {
-const errText = await res.text().catch(() => '');
-addLog('error', 'Ошибка получения токена GigaChat', { status: res.status, body: errText });
-if (res.status >= 520 && res.status <= 529) {
-throw new Error(`Прокси не смог подключиться к серверу GigaChat (HTTP ${res.status}). Частая причина — прокси не поддерживает нестандартный порт 9443. Попробуйте другой CORS-прокси.`);
-}
-throw new Error(`Не удалось получить токен GigaChat (HTTP ${res.status})`);
-}
-const data = await res.json();
-state.gigachatAccessToken = data.access_token;
-state.gigachatTokenExpiresAt = data.expires_at;
-addLog('response', 'Токен GigaChat получен', { via: usedDirectFallback ? 'напрямую (без прокси)' : (usingProxy ? 'через прокси' : 'напрямую'), expires_at: new Date(data.expires_at).toLocaleTimeString('ru-RU') });
-return state.gigachatAccessToken;
-}
-
-// GigaChat's docs (unlike Gemini's) don't publish an explicit chat/completions
-// RPM cap — only the token endpoint's own 10 req/sec limit is documented.
-// This fixed pace is a conservative precaution, not a confirmed hard limit.
-// Uses the same serialized-queue design as geminiRateLimiter (see its
-// comment above) so concurrent calls can't race past the pacing check.
-// GigaChat's freemium terms state generation runs "in a single stream"
-// (single-threaded) rather than publishing an RPM number — i.e. the real
-// constraint is "no concurrent requests," not a request-per-minute cap. The
-// serialized queue design (same pattern as geminiRateLimiter) already
-// guarantees that regardless of minIntervalMs, so this only needs to be a
-// small, polite gap between requests rather than a conservative RPM budget.
-const gigachatRateLimiter = {
-queue: Promise.resolve(),
-lastRequestTime: 0,
-minIntervalMs: 500,
-acquire(onWait) {
-this.queue = this.queue.then(() => this._acquireOne(onWait));
-return this.queue;
-},
-async _acquireOne(onWait) {
-if (!state.slowMode) { this.lastRequestTime = Date.now(); return; }
-const now = Date.now();
-const elapsed = now - this.lastRequestTime;
-if (elapsed < this.minIntervalMs) {
-const waitMs = this.minIntervalMs - elapsed;
-if (onWait) onWait(waitMs);
-addLog('info', `Пауза между запросами к GigaChat: ${(waitMs / 1000).toFixed(1)}с...`);
-const detailEl = document.getElementById('aiStatusDetail');
-if (detailEl) detailEl.textContent = `Пауза между запросами к GigaChat: ${(waitMs / 1000).toFixed(1)}с...`;
-await sleep(waitMs);
-}
-this.lastRequestTime = Date.now();
-}
-};
-
-async function callGigaChatGenerate(authKey, scope, model, maxTokens, prompt, logLabel, logMeta) {
-const token = await ensureGigaChatToken(authKey, scope);
-await gigachatRateLimiter.acquire();
-const url = getGigaChatApiUrl('/v1/chat/completions');
-const requestBody = {
-model: model || 'GigaChat',
-messages: [{ role: 'user', content: prompt }],
-stream: false,
-max_tokens: maxTokens,
-repetition_penalty: 1
-};
-addLog('request', logLabel, logMeta);
-let response;
-try {
-response = await fetch(url, {
-method: 'POST',
-headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-body: JSON.stringify(requestBody)
-});
-} catch (e) {
-addLog('error', 'Сетевая ошибка GigaChat', e.message);
-throw new Error('Сетевая ошибка: ' + e.message);
-}
-if (!response.ok) {
-const err = await response.json().catch(() => ({}));
-addLog('error', 'Ошибка GigaChat', err);
-throw new Error(err.message || `Ошибка API GigaChat (HTTP ${response.status})`);
-}
-const data = await response.json();
-let fullText = data.choices?.[0]?.message?.content || '';
-fullText = fullText.trim() || 'Не удалось сгенерировать';
-addLog('response', 'Ответ от GigaChat', { response: fullText, usage: data.usage });
-
-// The freemium token budget is per-model and only authoritatively known via
-// /v1/balance (which we don't want to call before every single generation —
-// that would double the request count for no real benefit). Track a running
-// local estimate between balance checks so the person has some visibility
-// without needing to check /v1/balance constantly.
-if (data.usage && typeof data.usage.total_tokens === 'number') {
-const key = model || 'GigaChat';
-state.gigachatTokensUsedEstimate[key] = (state.gigachatTokensUsedEstimate[key] || 0) + data.usage.total_tokens;
-updateGigaChatBalanceEstimateDisplay();
-}
-
-return fullText;
-}
-
-function updateGigaChatBalanceEstimateDisplay() {
-const el = document.getElementById('gigachatBalanceDisplay');
-if (!el || el.dataset.hasRealBalance === 'true') return;
-const parts = Object.entries(state.gigachatTokensUsedEstimate).map(([model, tokens]) => `${model}: ~${tokens.toLocaleString('ru-RU')} токенов`);
-if (parts.length > 0) {
-el.textContent = `Оценка расхода в этой сессии (не заменяет реальный остаток — нажмите «Проверить»): ${parts.join(', ')}`;
-}
-}
-
-async function checkGigaChatBalance() {
-const authKey = document.getElementById('gigachatAuthKey').value.trim();
-const scope = document.getElementById('gigachatScope').value;
-const display = document.getElementById('gigachatBalanceDisplay');
-if (!authKey) { showToast('Введите ключ авторизации GigaChat', 'error'); return; }
-try {
-const token = await ensureGigaChatToken(authKey, scope);
-const url = getGigaChatApiUrl('/v1/balance');
-addLog('request', 'Запрос остатка токенов GigaChat', { url });
-const response = await fetch(url, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } });
-if (response.status === 403) {
-display.textContent = 'Остаток недоступен (403) — обычно означает pay-as-you-go тариф (CORP) без пакета токенов, а не Freemium/PERS.';
-display.dataset.hasRealBalance = 'false';
-addLog('info', 'GigaChat: /v1/balance вернул 403 (pay-as-you-go без пакета)');
-return;
-}
-const data = await response.json();
-if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`);
-const list = Array.isArray(data) ? data : (data.data || []);
-if (list.length === 0) { display.textContent = 'Ответ получен, но список пуст.'; return; }
-display.innerHTML = list.map(item => `<span class="inline-block mr-3">${escapeHtml(item.usage)}: <b>${Number(item.value).toLocaleString('ru-RU')}</b> ток.</span>`).join('');
-display.dataset.hasRealBalance = 'true';
-state.gigachatTokensUsedEstimate = {};
-showToast('Остаток токенов GigaChat обновлён', 'success');
-addLog('response', 'Остаток токенов GigaChat', list);
-} catch (err) {
-showToast('Ошибка проверки остатка: ' + err.message, 'error');
-addLog('error', 'GigaChat Balance Error', err.message);
-}
-}
-
 function buildProductInfoBlock(sku) {
 const prod = state.productDescriptions[String(sku)];
 if (!prod) return '';
@@ -2375,34 +1991,9 @@ addLog('response', 'Ответ от Gemini', { response: fullText });
 return fullText;
 }
 
-function getActiveProviderConfigFromStorage() {
-if (state.aiProvider === 'gigachat') {
-return { provider: 'gigachat', authKey: localStorage.getItem('gigachat_authKey'), scope: localStorage.getItem('gigachat_scope') || 'GIGACHAT_API_PERS', model: localStorage.getItem('gigachat_model') || 'GigaChat' };
-}
-return { provider: 'gemini', apiKey: localStorage.getItem('gemini_apiKey'), model: localStorage.getItem('gemini_model') || 'gemini-1.5-flash-latest' };
-}
-
-function getActiveProviderConfigFromDOM() {
-if (state.aiProvider === 'gigachat') {
-return { provider: 'gigachat', authKey: document.getElementById('gigachatAuthKey').value.trim(), scope: document.getElementById('gigachatScope').value, model: document.getElementById('gigachatModel').value };
-}
-return { provider: 'gemini', apiKey: document.getElementById('geminiApiKey').value.trim(), model: document.getElementById('geminiModel').value };
-}
-
-function providerHasCredentials(cfg) {
-return cfg.provider === 'gigachat' ? !!cfg.authKey : !!cfg.apiKey;
-}
-
-function dispatchAIGenerate(cfg, maxTokens, prompt, logLabel, logMeta) {
-if (cfg.provider === 'gigachat') {
-return callGigaChatGenerate(cfg.authKey, cfg.scope, cfg.model, maxTokens, prompt, logLabel, logMeta);
-}
-return callGeminiGenerate(cfg.apiKey, cfg.model, maxTokens, prompt, logLabel, logMeta);
-}
-
 async function generateForReview(reviewId) {
-const cfg = getActiveProviderConfigFromStorage();
-if (!providerHasCredentials(cfg)) { showToast(cfg.provider === 'gigachat' ? 'Введите ключ авторизации GigaChat' : 'Введите Gemini API Key', 'error'); return; }
+const apiKey = localStorage.getItem('gemini_apiKey');
+if (!apiKey) { showToast('Введите Gemini API Key', 'error'); return; }
 const review = state.reviews.find(r => r.id === reviewId);
 if (!review) return;
 
@@ -2411,12 +2002,13 @@ showToast('Превышен дневной лимит 500 запросов', 'er
 return;
 }
 
+const model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash-latest';
 const promptTemplate = localStorage.getItem('gemini_prompt') || 'Ты — помощник продавца на Ozon.';
 const maxTokens = parseInt(localStorage.getItem('gemini_max_tokens')) || 200;
 const prompt = buildReviewPrompt(review, promptTemplate);
 
 try {
-const fullText = await dispatchAIGenerate(cfg, maxTokens, prompt, `Генерация AI (отзыв, ${cfg.provider})`, { review_id: reviewId.substring(0, 8) });
+const fullText = await callGeminiGenerate(apiKey, model, maxTokens, prompt, 'Генерация AI (отзыв)', { review_id: reviewId.substring(0, 8) });
 
 review.response = fullText;
 if (state.slowMode) incrementDailyCounter();
@@ -2433,8 +2025,8 @@ showToast(`Ошибка: ${e.message}`, 'error');
 }
 
 async function generateForQuestion(questionId) {
-const cfg = getActiveProviderConfigFromStorage();
-if (!providerHasCredentials(cfg)) { showToast(cfg.provider === 'gigachat' ? 'Введите ключ авторизации GigaChat' : 'Введите Gemini API Key', 'error'); return; }
+const apiKey = localStorage.getItem('gemini_apiKey');
+if (!apiKey) { showToast('Введите Gemini API Key', 'error'); return; }
 const question = state.questions.find(q => q.id === questionId);
 if (!question) return;
 
@@ -2443,12 +2035,13 @@ showToast('Превышен дневной лимит 500 запросов', 'er
 return;
 }
 
+const model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash-latest';
 const promptTemplate = localStorage.getItem('gemini_prompt_questions') || 'Ты — помощник продавца на Ozon.';
 const maxTokens = parseInt(localStorage.getItem('gemini_max_tokens')) || 200;
 const prompt = buildQuestionPrompt(question, promptTemplate);
 
 try {
-const fullText = await dispatchAIGenerate(cfg, maxTokens, prompt, `Генерация AI (вопрос, ${cfg.provider})`, { question_id: questionId.substring(0, 8) });
+const fullText = await callGeminiGenerate(apiKey, model, maxTokens, prompt, 'Генерация AI (вопрос)', { question_id: questionId.substring(0, 8) });
 
 question.response = fullText;
 if (state.slowMode) incrementDailyCounter();
@@ -2955,8 +2548,8 @@ document.addEventListener('mousemove', onMove); document.addEventListener('mouse
 }
 
 function generateWithAI() {
-const cfg = getActiveProviderConfigFromDOM();
-if (!providerHasCredentials(cfg)) { showToast(cfg.provider === 'gigachat' ? 'Введите ключ авторизации GigaChat в Настройках' : 'Введите Gemini API Key в Настройках', 'error'); return; }
+const apiKey = document.getElementById('geminiApiKey').value.trim();
+if (!apiKey) { showToast('Введите Gemini API Key в Настройках', 'error'); return; }
 
 if (state.isGenerating) { showToast('Генерация уже выполняется — дождитесь завершения или нажмите «Отмена»', 'info'); return; }
 
@@ -2972,14 +2565,14 @@ typeText = 'вопросов';
 }
 
 if (selectedItems.length === 0) { showToast('Сначала выберите элементы (меню выделения в шапке таблицы)', 'error'); return; }
-if (cfg.provider === 'gemini' && !cfg.model) { showToast('Обновите список моделей в Настройках', 'error'); return; }
+if (!document.getElementById('geminiModel').value) { showToast('Обновите список моделей в Настройках', 'error'); return; }
 
 if (state.slowMode && !checkDailyLimit()) {
 showToast('Превышен дневной лимит 500 запросов. Попробуйте завтра.', 'error');
 return;
 }
 
-showToast(`Генерация запущена для ${selectedItems.length} ${typeText} (${cfg.provider === 'gigachat' ? 'GigaChat' : 'Gemini'}). Можно продолжать работу.`, 'info');
+showToast(`Генерация запущена для ${selectedItems.length} ${typeText}. Можно продолжать работу.`, 'info');
 runGeminiGeneration(selectedItems, isReviews);
 }
 
@@ -3105,17 +2698,19 @@ updateDailyCounterDisplay();
 }
 
 async function generateSingleReviewWithAI(review, promptTemplate) {
-const cfg = getActiveProviderConfigFromDOM();
+const apiKey = document.getElementById('geminiApiKey').value.trim();
+const model = document.getElementById('geminiModel').value;
 const maxTokens = parseInt(document.getElementById('geminiMaxTokens').value) || 200;
 const prompt = buildReviewPrompt(review, promptTemplate);
-return dispatchAIGenerate(cfg, maxTokens, prompt, `Запрос к AI (отзыв, ${cfg.provider})`, { model: cfg.model, review_id: review.id.substring(0, 8) });
+return callGeminiGenerate(apiKey, model, maxTokens, prompt, 'Запрос к Gemini (отзыв)', { model, review_id: review.id.substring(0, 8) });
 }
 
 async function generateSingleQuestionWithAI(question, promptTemplate) {
-const cfg = getActiveProviderConfigFromDOM();
+const apiKey = document.getElementById('geminiApiKey').value.trim();
+const model = document.getElementById('geminiModel').value;
 const maxTokens = parseInt(document.getElementById('geminiMaxTokens').value) || 200;
 const prompt = buildQuestionPrompt(question, promptTemplate);
-return dispatchAIGenerate(cfg, maxTokens, prompt, `Запрос к AI (вопрос, ${cfg.provider})`, { model: cfg.model, question_id: question.id.substring(0, 8) });
+return callGeminiGenerate(apiKey, model, maxTokens, prompt, 'Запрос к Gemini (вопрос)', { model, question_id: question.id.substring(0, 8) });
 }
 
 function updateGeminiProgress(p, t, detail) {
@@ -3175,49 +2770,6 @@ showToast(`Найдено моделей: ${supportedModels.length}`, 'success')
 addLog('response', 'Список моделей обновлен', supportedModels.map(m => m.name.replace('models/', '')));
 } else { throw new Error(data.error?.message || 'Не удалось получить список'); }
 } catch (err) { showToast('Ошибка: ' + err.message, 'error'); addLog('error', 'Models Error', err.message); }
-}
-
-async function testGigaChatConnection() {
-const authKey = document.getElementById('gigachatAuthKey').value.trim();
-const scope = document.getElementById('gigachatScope').value;
-const model = document.getElementById('gigachatModel').value || 'GigaChat';
-if (!authKey) return showToast('Введите ключ авторизации GigaChat', 'error');
-try {
-addLog('request', 'Тест подключения к GigaChat', { model, scope });
-const result = await callGigaChatGenerate(authKey, scope, model, 30, 'Привет! Ответь одним словом.', 'Тест подключения к GigaChat', { model });
-showToast(`GigaChat подключен! Ответ: ${result}`, 'success');
-checkGigaChatBalance();
-} catch (err) {
-showToast(`Ошибка: ${err.message}`, 'error');
-}
-}
-
-async function updateGigaChatModels() {
-const authKey = document.getElementById('gigachatAuthKey').value.trim();
-const scope = document.getElementById('gigachatScope').value;
-if (!authKey) { showToast('Введите ключ авторизации GigaChat', 'error'); return; }
-try {
-const token = await ensureGigaChatToken(authKey, scope);
-const url = getGigaChatApiUrl('/v1/models');
-addLog('request', 'Запрос списка моделей GigaChat', { url });
-const response = await fetch(url, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } });
-const data = await response.json();
-if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`);
-if (data.data) {
-const select = document.getElementById('gigachatModel');
-const current = select.value;
-select.innerHTML = '';
-data.data.forEach(m => {
-const option = document.createElement('option');
-option.value = m.id;
-option.textContent = m.id;
-if (m.id === current || (!current && m.id === 'GigaChat')) option.selected = true;
-select.appendChild(option);
-});
-showToast(`Найдено моделей: ${data.data.length}`, 'success');
-addLog('response', 'Список моделей GigaChat обновлен', data.data.map(m => m.id));
-} else { throw new Error('Не удалось получить список моделей'); }
-} catch (err) { showToast('Ошибка: ' + err.message, 'error'); addLog('error', 'GigaChat Models Error', err.message); }
 }
 </script>
 </body>
