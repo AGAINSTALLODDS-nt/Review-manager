@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.28</title>
+    <title>Ozon Reviews AI Manager v.0.29</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
@@ -224,7 +224,7 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="brand-title text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.28
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.29
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
@@ -657,7 +657,8 @@
 <div>
 <label class="text-xs text-slate-400 block mb-1">CORS Proxy</label>
 <input type="text" id="gigachatCorsProxy" class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-sm focus:border-blue-500 outline-none transition" placeholder="https://corsproxy.io/?">
-<p class="text-[10px] text-slate-500 mt-1">GigaChat почти наверняка не отдаёт CORS-заголовки для запросов из браузера — как правило, нужен тот же тип прокси, что и для Ozon. Используется и для получения токена, и для генерации.</p>
+<p class="text-[10px] text-slate-500 mt-1">Публичные прокси (corsproxy.io и подобные) часто не справляются с нестандартным портом 9443 и заголовком RqUID — если получаете «Failed to fetch», надёжнее развернуть свой мини-релей на Cloudflare Workers (2 минуты, бесплатно) — см. кнопку «Помощь с прокси» ниже.</p>
+<button onclick="document.getElementById('workerHelpModal').classList.remove('hidden')" class="text-[10px] text-blue-600 hover:text-blue-700 underline mt-1">Помощь с прокси (Cloudflare Worker)</button>
 </div>
 <p class="text-[10px] text-slate-500">Промпты и лимит токенов — общие для Gemini и GigaChat, см. поля ниже в карточке Gemini.</p>
 <div class="p-2 bg-slate-50/50 rounded border border-slate-300">
@@ -796,6 +797,50 @@
 </div>
 </div>
 
+<!-- Cloudflare Worker CORS relay help modal -->
+<div id="workerHelpModal" class="hidden modal-overlay" onclick="if(event.target===this) document.getElementById('workerHelpModal').classList.add('hidden')">
+<div class="modal-content" style="max-width: 720px;">
+<h3 class="text-lg font-semibold mb-3 flex items-center justify-between">
+<span><i class="ph ph-cloud mr-2 text-blue-400"></i>Свой CORS-релей на Cloudflare Workers</span>
+<button onclick="document.getElementById('workerHelpModal').classList.add('hidden')" class="text-xs text-slate-500 hover:text-red-600"><i class="ph ph-x"></i></button>
+</h3>
+<p class="text-sm text-slate-700 mb-3">Публичные CORS-прокси часто не справляются с нестандартным портом (<code>:9443</code> у эндпоинта токена GigaChat) и с нестандартными заголовками (<code>RqUID</code>) — браузер может блокировать запрос ещё на этапе preflight, до того как прокси вообще получит шанс его переслать. Свой Worker решает это радикально: запрос от Worker к Sberbank идёт сервер-сервер, где браузерный CORS вообще не участвует.</p>
+<ol class="text-sm text-slate-700 space-y-2 list-decimal list-inside mb-4">
+<li>Зайдите на <a href="https://workers.cloudflare.com/" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline">workers.cloudflare.com</a>, войдите/зарегистрируйтесь (бесплатно).</li>
+<li>Создайте новый Worker, вставьте код ниже вместо шаблонного и нажмите «Deploy».</li>
+<li>Скопируйте выданный адрес вида <code>https://ваш-worker.ваш-аккаунт.workers.dev</code>.</li>
+<li>В поле «CORS Proxy» карточки GigaChat впишите этот адрес с суффиксом <code>/?url=</code>, например: <code>https://ваш-worker.workers.dev/?url=</code></li>
+</ol>
+<div class="json-viewer" style="max-height: 260px; white-space: pre; overflow: auto;">export default {
+  async fetch(request) {
+    const cors = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': '*',
+    };
+    if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
+
+    const target = new URL(request.url).searchParams.get('url');
+    if (!target) return new Response('Missing ?url=', { status: 400, headers: cors });
+
+    const headers = new Headers(request.headers);
+    headers.delete('host');
+    const init = {
+      method: request.method,
+      headers,
+      body: ['GET', 'HEAD'].includes(request.method) ? undefined : await request.text(),
+    };
+
+    const resp = await fetch(target, init);
+    const respHeaders = new Headers(resp.headers);
+    Object.entries(cors).forEach(([k, v]) => respHeaders.set(k, v));
+    return new Response(resp.body, { status: resp.status, headers: respHeaders });
+  }
+}</div>
+<p class="text-[11px] text-slate-500 mt-3">Этот же Worker подойдёт и для Ozon (можно использовать один адрес в обоих полях «CORS Proxy»).</p>
+</div>
+</div>
+
 <script>
 let state = {
 reviews: [],
@@ -905,7 +950,7 @@ if (e.key === 'ArrowRight') showReviewPhoto(1);
 }
 });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.28 - GigaChat token fetch auto-fallback to direct connection on proxy edge errors (522 etc)' });
+addLog('info', 'Приложение запущено', { version: 'v.0.29 - GigaChat CORS diagnosis + built-in Cloudflare Worker relay guide' });
 });
 
 function resetDailyCounter() {
@@ -1019,7 +1064,14 @@ const base = proxy.replace(/\/?(\?(url=)?)?$/i, '');
 return `${base}/?url=${encodeURIComponent(target)}`;
 }
 
-return proxy.endsWith('/') || proxy.endsWith('=') ? `${proxy}${target}` : `${proxy}/${target}`;
+// Query-param-style proxy (e.g. a custom Worker/relay using "?url=" or
+// similar) — percent-encode the target the same way as corsproxy.io, since
+// raw concatenation here can break the proxy's own query-string parsing.
+if (proxy.endsWith('=')) {
+return `${proxy}${encodeURIComponent(target)}`;
+}
+
+return proxy.endsWith('/') ? `${proxy}${target}` : `${proxy}/${target}`;
 }
 
 function getOzonUrl(path) {
@@ -2118,13 +2170,13 @@ usedDirectFallback = true;
 addLog('info', 'Прямое подключение к GigaChat сработало — прокси для получения токена не потребовался.');
 } catch (e2) {
 addLog('error', 'Прямое подключение тоже не удалось (похоже на CORS)', e2.message);
-throw new Error(`Прокси не смог подключиться к GigaChat (${reason}) — частая причина: публичные CORS-прокси не поддерживают нестандартный порт 9443. Прямое подключение тоже заблокировано (обычно это означает настоящий CORS-запрет со стороны браузера). Попробуйте другой прокси, умеющий работать с произвольными портами, либо небольшой собственный серверный релей.`);
+throw new Error(`Не удалось получить токен GigaChat ни через прокси (${reason}), ни напрямую (${e2.message}). Похоже на настоящий CORS-запрет браузера на заголовок RqUID при preflight-проверке — публичные прокси плохо с этим справляются. Разверните свой мини-релей на Cloudflare Workers (кнопка «Помощь с прокси» в настройках GigaChat) — это решает проблему полностью, так как запрос от Worker к Sberbank идёт сервер-сервер, минуя браузерный CORS.`);
 }
 }
 
 if (networkError) {
 addLog('error', 'Сетевая ошибка при получении токена GigaChat', networkError.message);
-throw new Error('Сетевая ошибка при получении токена GigaChat: ' + networkError.message);
+throw new Error(`Сетевая ошибка при получении токена GigaChat: ${networkError.message}. Если это происходит и с прокси, и без него — скорее всего, браузер блокирует preflight-запрос из-за заголовка RqUID (настоящий CORS-запрет, не обойти на стороне приложения). Разверните свой мини-релей на Cloudflare Workers — кнопка «Помощь с прокси» в настройках GigaChat.`);
 }
 if (!res.ok) {
 const errText = await res.text().catch(() => '');
