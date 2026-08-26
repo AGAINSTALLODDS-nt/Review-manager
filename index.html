@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.27</title>
+    <title>Ozon Reviews AI Manager v.0.28</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
@@ -224,7 +224,7 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="brand-title text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.27
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.28
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
@@ -905,7 +905,7 @@ if (e.key === 'ArrowRight') showReviewPhoto(1);
 }
 });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.27 - GigaChat token balance tracking (/v1/balance), correct freemium model tiers' });
+addLog('info', 'Приложение запущено', { version: 'v.0.28 - GigaChat token fetch auto-fallback to direct connection on proxy edge errors (522 etc)' });
 });
 
 function resetDailyCounter() {
@@ -2068,18 +2068,8 @@ return buildProxiedUrl(`https://api.giga.chat${path}`, document.getElementById('
 // The Access token is cached in memory only (not localStorage — it's
 // short-lived and there's no benefit to persisting it across reloads) and
 // transparently refreshed a little before it actually expires.
-async function ensureGigaChatToken(authKey, scope) {
-const now = Date.now();
-if (state.gigachatAccessToken && now < state.gigachatTokenExpiresAt - 10000) {
-return state.gigachatAccessToken;
-}
-if (!authKey) throw new Error('Введите ключ авторизации GigaChat в Настройках');
-
-const url = getGigaChatAuthUrl();
-addLog('request', 'Получение токена GigaChat', { scope, url });
-let res;
-try {
-res = await fetch(url, {
+async function fetchGigaChatToken(authKey, scope, url) {
+return fetch(url, {
 method: 'POST',
 headers: {
 'Content-Type': 'application/x-www-form-urlencoded',
@@ -2089,19 +2079,65 @@ headers: {
 },
 body: 'scope=' + encodeURIComponent(scope || 'GIGACHAT_API_PERS')
 });
+}
+
+async function ensureGigaChatToken(authKey, scope) {
+const now = Date.now();
+if (state.gigachatAccessToken && now < state.gigachatTokenExpiresAt - 10000) {
+return state.gigachatAccessToken;
+}
+if (!authKey) throw new Error('Введите ключ авторизации GigaChat в Настройках');
+
+const directUrl = 'https://ngw.devices.sberbank.ru:9443/api/v2/oauth';
+const proxiedUrl = getGigaChatAuthUrl();
+const usingProxy = proxiedUrl !== directUrl;
+
+let res, networkError, usedDirectFallback = false;
+addLog('request', 'Получение токена GigaChat', { scope, url: proxiedUrl });
+try {
+res = await fetchGigaChatToken(authKey, scope, proxiedUrl);
 } catch (e) {
-addLog('error', 'Сетевая ошибка при получении токена GigaChat', e.message);
-throw new Error('Сетевая ошибка при получении токена GigaChat — вероятно, нужен CORS-прокси (поле «CORS Proxy» в карточке GigaChat), как и для Ozon: GigaChat, скорее всего, не отдаёт CORS-заголовки для запросов напрямую из браузера.');
+networkError = e;
+}
+
+// Cloudflare edge errors (520-529, including 522 "connection timed out")
+// mean the PROXY itself failed to reach Sberbank — very often because
+// public CORS proxies refuse to connect to non-standard ports (9443 here),
+// not that GigaChat rejected anything. If that happens, retry once hitting
+// Sberbank directly: this either works outright (no proxy needed for this
+// endpoint) or fails with a genuine CORS error, which tells us definitively
+// which case we're in instead of guessing.
+const proxyEdgeFailed = networkError || (res && res.status >= 520 && res.status <= 529);
+if (usingProxy && proxyEdgeFailed) {
+const reason = res ? `HTTP ${res.status}` : networkError.message;
+addLog('info', `Прокси не смог подключиться к GigaChat (${reason}). Пробую напрямую, без прокси...`);
+try {
+res = await fetchGigaChatToken(authKey, scope, directUrl);
+networkError = null;
+usedDirectFallback = true;
+addLog('info', 'Прямое подключение к GigaChat сработало — прокси для получения токена не потребовался.');
+} catch (e2) {
+addLog('error', 'Прямое подключение тоже не удалось (похоже на CORS)', e2.message);
+throw new Error(`Прокси не смог подключиться к GigaChat (${reason}) — частая причина: публичные CORS-прокси не поддерживают нестандартный порт 9443. Прямое подключение тоже заблокировано (обычно это означает настоящий CORS-запрет со стороны браузера). Попробуйте другой прокси, умеющий работать с произвольными портами, либо небольшой собственный серверный релей.`);
+}
+}
+
+if (networkError) {
+addLog('error', 'Сетевая ошибка при получении токена GigaChat', networkError.message);
+throw new Error('Сетевая ошибка при получении токена GigaChat: ' + networkError.message);
 }
 if (!res.ok) {
 const errText = await res.text().catch(() => '');
 addLog('error', 'Ошибка получения токена GigaChat', { status: res.status, body: errText });
+if (res.status >= 520 && res.status <= 529) {
+throw new Error(`Прокси не смог подключиться к серверу GigaChat (HTTP ${res.status}). Частая причина — прокси не поддерживает нестандартный порт 9443. Попробуйте другой CORS-прокси.`);
+}
 throw new Error(`Не удалось получить токен GigaChat (HTTP ${res.status})`);
 }
 const data = await res.json();
 state.gigachatAccessToken = data.access_token;
 state.gigachatTokenExpiresAt = data.expires_at;
-addLog('response', 'Токен GigaChat получен', { expires_at: new Date(data.expires_at).toLocaleTimeString('ru-RU') });
+addLog('response', 'Токен GigaChat получен', { via: usedDirectFallback ? 'напрямую (без прокси)' : (usingProxy ? 'через прокси' : 'напрямую'), expires_at: new Date(data.expires_at).toLocaleTimeString('ru-RU') });
 return state.gigachatAccessToken;
 }
 
