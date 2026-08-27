@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ozon Reviews AI Manager v.0.25</title>
+    <title>Ozon Reviews AI Manager v.0.26</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@latest"></script>
@@ -221,7 +221,7 @@
 <header class="relative z-50 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
 <div>
 <h1 class="brand-title text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 flex items-center">
-<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.25
+<i class="ph ph-chat-circle-text mr-2"></i>Ozon Reviews AI Manager v.0.26
 </h1>
 <p class="text-slate-400 text-sm mt-1">Управление отзывами и вопросами с AI-генерацией ответов</p>
 </div>
@@ -291,6 +291,7 @@
 <div class="flex justify-between items-center text-xs mb-1">
 <span class="font-medium flex items-center text-purple-400"><i class="ph ph-sparkle spinner mr-2"></i><span id="aiStatusText">Генерация AI...</span></span>
 <div class="flex items-center gap-3">
+<span id="aiStatusEta" class="text-slate-500"></span>
 <span id="aiStatusPercent" class="text-slate-500">0%</span>
 <button onclick="cancelAIGeneration()" class="text-xs text-red-600 hover:text-red-700 underline">Отмена</button>
 </div>
@@ -541,6 +542,13 @@
 <button onclick="showCreateTemplateModal()" class="btn btn-purple px-4 py-2 rounded-lg text-white text-sm flex items-center">
 <i class="ph ph-plus mr-2"></i> Создать новый шаблон
 </button>
+<button onclick="exportTemplatesToExcel()" class="btn btn-success px-4 py-2 rounded-lg text-white text-sm flex items-center">
+<i class="ph ph-download-simple mr-2"></i> Скачать шаблоны (XLSX)
+</button>
+<button onclick="document.getElementById('importTemplatesFile').click()" class="btn btn-warning px-4 py-2 rounded-lg text-white text-sm flex items-center">
+<i class="ph ph-upload-simple mr-2"></i> Импортировать шаблоны (XLSX)
+</button>
+<input type="file" id="importTemplatesFile" accept=".xlsx,.xls" class="hidden" onchange="importTemplatesFromExcel(this)">
 <!-- Removed "Save current as template" button as requested -->
 </div>
 <div id="templatesList">
@@ -824,7 +832,7 @@ if (e.key === 'ArrowRight') showReviewPhoto(1);
 }
 });
 
-addLog('info', 'Приложение запущено', { version: 'v.0.25 - Fix XLSX not defined (stale CDN version), CSV export/import no longer depends on XLSX' });
+addLog('info', 'Приложение запущено', { version: 'v.0.26 - Live Send-button visibility fix, template export/import to XLSX' });
 });
 
 function resetDailyCounter() {
@@ -1152,7 +1160,13 @@ item = state.reviews.find(r => r.id === itemId);
 } else {
 item = state.questions.find(q => q.id === itemId);
 }
-if (template && item) { item.response = template.text; const textarea = document.querySelector(`textarea[data-id="${itemId}"]`); if (textarea) textarea.value = template.text; }
+if (template && item) {
+item.response = template.text;
+const textarea = document.querySelector(`textarea[data-id="${itemId}"]`);
+if (textarea) textarea.value = template.text;
+const btn = document.getElementById(state.currentTab === 'reviews' ? `sendBtn_${itemId}` : `sendBtnQ_${itemId}`);
+if (btn) btn.classList.toggle('hidden', !(template.text && template.text.trim().length > 0));
+}
 closeTemplateSelectModal(); showToast('Шаблон применён', 'success');
 }
 
@@ -1786,12 +1800,12 @@ tr.innerHTML = `
 <td><div class="review-text text-slate-700">${r.text ? escapeHtml(r.text) : '<span class="text-slate-500 italic">Без текста</span>'}</div></td>
 <td>${mediaHtml}</td>
 <td>
-<textarea class="${taClass}" data-id="${r.id}" placeholder="Введите ответ..." onchange="updateResponse('${r.id}', this.value)">${escapeHtml(r.response || '')}</textarea>
+<textarea class="${taClass}" data-id="${r.id}" placeholder="Введите ответ..." oninput="updateResponse('${r.id}', this.value)">${escapeHtml(r.response || '')}</textarea>
 <div class="action-btns">
 <button class="action-btn ai" onclick="generateForReview('${r.id}')" title="Сгенерировать ответ AI"><i class="ph ph-sparkle"></i> AI</button>
 <button class="action-btn template" onclick="showTemplateSelectForItem('${r.id}')" title="Выбрать шаблон"><i class="ph ph-files"></i> Шаблон</button>
 <button class="action-btn save" onclick="saveCurrentTextAsTemplate('${r.id}')" title="Сохранить текущий текст как шаблон"><i class="ph ph-floppy-disk"></i> Сохр.</button>
-${hasResponse ? `<button class="action-btn send" onclick="sendSingleResponseToOzon(state.reviews.find(x=>x.id==='${r.id}'))" title="Отправить ответ"><i class="ph ph-paper-plane-right"></i> Отпр.</button>` : ''}
+<button class="action-btn send ${hasResponse ? '' : 'hidden'}" id="sendBtn_${r.id}" onclick="sendSingleResponseToOzon(state.reviews.find(x=>x.id==='${r.id}'))" title="Отправить ответ"><i class="ph ph-paper-plane-right"></i> Отпр.</button>
 </div>
 </td>
 `;
@@ -1849,12 +1863,12 @@ tr.innerHTML = `
 <td><span class="status-badge ${statusBadgeClass}">${statusText}</span></td>
 <td><div class="review-text text-slate-700">${q.text ? escapeHtml(q.text) : '<span class="text-slate-500 italic">Без текста</span>'}</div><div class="answers-count">Ответов: ${q.answers_count}</div></td>
 <td>
-<textarea class="${taClass}" data-id="${q.id}" placeholder="Введите ответ на вопрос..." onchange="updateQuestionResponse('${q.id}', this.value)">${escapeHtml(q.response || '')}</textarea>
+<textarea class="${taClass}" data-id="${q.id}" placeholder="Введите ответ на вопрос..." oninput="updateQuestionResponse('${q.id}', this.value)">${escapeHtml(q.response || '')}</textarea>
 <div class="action-btns">
 <button class="action-btn ai" onclick="generateForQuestion('${q.id}')" title="Сгенерировать ответ AI"><i class="ph ph-sparkle"></i> AI</button>
 <button class="action-btn template" onclick="showTemplateSelectForItem('${q.id}')" title="Выбрать шаблон"><i class="ph ph-files"></i> Шаблон</button>
 <button class="action-btn save" onclick="saveCurrentTextAsTemplate('${q.id}')" title="Сохранить текущий текст как шаблон"><i class="ph ph-floppy-disk"></i> Сохр.</button>
-${hasResponse ? `<button class="action-btn send" onclick="sendSingleQuestionAnswer(state.questions.find(x=>x.id==='${q.id}'))" title="Отправить ответ"><i class="ph ph-paper-plane-right"></i> Отпр.</button>` : ''}
+<button class="action-btn send ${hasResponse ? '' : 'hidden'}" id="sendBtnQ_${q.id}" onclick="sendSingleQuestionAnswer(state.questions.find(x=>x.id==='${q.id}'))" title="Отправить ответ"><i class="ph ph-paper-plane-right"></i> Отпр.</button>
 </div>
 </td>
 `;
@@ -2340,11 +2354,15 @@ updateStats();
 function updateResponse(id, text) {
 const r = state.reviews.find(x => x.id === id);
 if (r) r.response = text;
+const btn = document.getElementById(`sendBtn_${id}`);
+if (btn) btn.classList.toggle('hidden', !(text && text.trim().length > 0));
 }
 
 function updateQuestionResponse(id, text) {
 const q = state.questions.find(x => x.id === id);
 if (q) q.response = text;
+const btn = document.getElementById(`sendBtnQ_${id}`);
+if (btn) btn.classList.toggle('hidden', !(text && text.trim().length > 0));
 }
 
 function exportData() {
@@ -2516,6 +2534,52 @@ function exportToExcel(data, filename) {
 requireXLSX();
 const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Data'); XLSX.writeFile(wb, filename);
 }
+
+function exportTemplatesToExcel() {
+if (state.templates.length === 0) { showToast('Нет шаблонов для экспорта', 'error'); return; }
+try {
+const data = state.templates.map(t => ({ name: t.name, text: t.text }));
+const dateStr = new Date().toISOString().slice(0, 10);
+exportToExcel(data, `templates_${dateStr}.xlsx`);
+showToast(`Экспортировано шаблонов: ${data.length}`, 'success');
+addLog('info', 'Шаблоны экспортированы в XLSX', { count: data.length });
+} catch (e) {
+showToast('Ошибка экспорта: ' + e.message, 'error');
+}
+}
+
+function importTemplatesFromExcel(input) {
+const file = input.files[0];
+if (!file) return;
+try { requireXLSX(); } catch (e) { showToast(e.message, 'error'); input.value = ''; return; }
+const reader = new FileReader();
+reader.onload = (e) => {
+try {
+const wb = XLSX.read(e.target.result, { type: 'array' });
+const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+if (rows.length === 0) { showToast('Файл пуст или не распознан', 'error'); return; }
+let added = 0, skipped = 0;
+rows.forEach(row => {
+// Accept a couple of likely column-name variants so a hand-edited
+// spreadsheet (not just our own export) still imports cleanly.
+const name = (row.name || row.Name || row['Название'] || '').toString().trim();
+const text = (row.text || row.Text || row['Текст'] || '').toString().trim();
+if (!name || !text) { skipped++; return; }
+state.templates.push({ id: 'tmpl_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), name, text });
+added++;
+});
+saveTemplatesToStorage();
+renderTemplatesList();
+showToast(`Импортировано шаблонов: ${added}${skipped ? `, пропущено: ${skipped}` : ''}`, added > 0 ? 'success' : 'error');
+addLog('info', 'Шаблоны импортированы из XLSX', { added, skipped });
+} catch (err) {
+showToast('Ошибка импорта: ' + err.message, 'error');
+addLog('error', 'Ошибка импорта шаблонов', err.message);
+}
+};
+reader.readAsArrayBuffer(file);
+input.value = '';
+}
 // Deliberately implemented without XLSX — this keeps CSV export/import working
 // as a genuine fallback even if the XLSX library fails to load (network
 // issue, ad blocker, CDN version change), which is exactly the scenario this
@@ -2642,6 +2706,18 @@ itemsToProcess = itemsToProcess.slice(0, remaining);
 }
 }
 
+// Total time = (N-1) pauses of the current pacing interval — there's no
+// pause needed after the very last item finishes. This is exact, not a
+// rough guess: the pacer already enforces exactly this interval between
+// every pair of consecutive requests, regardless of batch size.
+if (state.slowMode && itemsToProcess.length > 1) {
+const estimatedMs = (itemsToProcess.length - 1) * geminiRateLimiter.minIntervalMs;
+const etaText = formatDuration(estimatedMs);
+document.getElementById('aiStatusEta').textContent = `осталось ~${etaText}`;
+addLog('info', `Оценка времени генерации: ~${etaText} на ${itemsToProcess.length} шт. (пауза ${(geminiRateLimiter.minIntervalMs / 1000).toFixed(1)}с между запросами)`);
+showToast(`Ориентировочное время: ~${etaText} на ${itemsToProcess.length} шт.`, 'info');
+}
+
 let completed = 0, errors = 0, cancelled = 0;
 
 for (let i = 0; i < itemsToProcess.length; i++) {
@@ -2673,6 +2749,8 @@ if (state.slowMode) incrementDailyCounter();
 // on the next render otherwise.
 const textarea = document.querySelector(`textarea[data-id="${item.id}"]`);
 if (textarea) { textarea.value = response; textarea.classList.add('gemini-filled'); }
+const sendBtn = document.getElementById(isReviews ? `sendBtn_${item.id}` : `sendBtnQ_${item.id}`);
+if (sendBtn) sendBtn.classList.toggle('hidden', !(response && response.trim().length > 0));
 
 } catch (e) { errors++; addLog('error', 'Ошибка генерации', e.message); }
 }
@@ -2713,11 +2791,35 @@ const prompt = buildQuestionPrompt(question, promptTemplate);
 return callGeminiGenerate(apiKey, model, maxTokens, prompt, 'Запрос к Gemini (вопрос)', { model, question_id: question.id.substring(0, 8) });
 }
 
+function formatDuration(ms) {
+if (ms <= 0) return '0 сек';
+const totalSec = Math.round(ms / 1000);
+const min = Math.floor(totalSec / 60);
+const sec = totalSec % 60;
+if (min === 0) return `${sec} сек`;
+if (sec === 0) return `${min} мин`;
+return `${min} мин ${sec} сек`;
+}
+
 function updateGeminiProgress(p, t, detail) {
 const percent = Math.round((p/t)*100);
 document.getElementById('aiStatusFill').style.width = `${percent}%`;
 document.getElementById('aiStatusPercent').textContent = `${percent}% (${p} / ${t})`;
 document.getElementById('aiStatusDetail').textContent = detail;
+
+// Remaining time = remaining items × the actual pacing interval currently
+// in effect — recalculated on every tick rather than fixed at the start,
+// so it stays accurate even if items are skipped/error out along the way.
+const etaEl = document.getElementById('aiStatusEta');
+if (etaEl) {
+if (!state.slowMode) {
+etaEl.textContent = '';
+} else {
+const remaining = Math.max(0, t - p);
+const remainingMs = remaining * geminiRateLimiter.minIntervalMs;
+etaEl.textContent = remaining > 0 ? `осталось ~${formatDuration(remainingMs)}` : '';
+}
+}
 }
 
 async function testOzonConnection() {
