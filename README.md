@@ -1,3 +1,3 @@
 # Review manager 
 
-# Test server version
+# GigaChat Test version
