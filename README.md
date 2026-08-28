@@ -6,7 +6,7 @@
 
 ---
 
-## ⚡ Чем это лучше нативного Ozon Seller
+## ⚡ Чем это лучше работы внутри Ozon Seller
 
 | | Ozon Seller (нативно) | Review Manager |
 |---|---|---|
